@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "EnumFile.h"
+#include "ReadText.h"
 
 class MesetaData
 {
@@ -92,6 +93,7 @@ public:
 	
 public:
 	CEnumFile enumFile;
+	CReadCurrentMesetaF readMeseta;
 
 	CTime initialTime;
 	long long elapsedTime;

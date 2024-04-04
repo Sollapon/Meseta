@@ -1,5 +1,5 @@
 #include "MesetaData.h"
-#include "ReadText.h"
+
 
 
 MesetaDataCtrl::MesetaDataCtrl()
@@ -20,6 +20,7 @@ bool MesetaDataCtrl::Init(CString path, bool run)
 	increasedMeseta = 0;
 	mesetaPerHour = 0;
 
+	readMeseta.Clear();
 	mesetaData.clear();
 	currentMeseta.clear();	
 
@@ -110,13 +111,8 @@ long long MesetaDataCtrl::getCurrentMeseta(bool init)
 	{
 		CString file = enumFile.getFile(i);
 
-		if (!CopyFile(file, L"log.tmp", false)) {
-			m = -1;
-			break;
-		}
-				
-		CReadCurrentMeseta readText;
-		m = readText.getCurrentMeseta("log.tmp");
+		//
+		m = readMeseta.getCurrentMeseta(file);
 		if (m >= 0)
 			break;
 	}

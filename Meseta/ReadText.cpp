@@ -39,11 +39,15 @@ bool CReadText::ReadText(CString path)
         // テキストファイルがオープンできた場合
         // テキストファイルのデータを1行ずつ読み込みます。
         // データがある間繰り返します。
-        CString read;
-        while (file.ReadString(read))
+        //CString read;
+        while (1)
         {
+            CFileData fd(file.GetPosition());
+            if (!file.ReadString(fd.string))
+                break;
+
             // データを読み込めた場合
-            data.push_back(read);
+            data.push_back(fd);
         }
         // テキストファイルをクローズします。
         file.Close();
@@ -54,7 +58,7 @@ bool CReadText::ReadText(CString path)
 	return true;
 }
 
-bool CReadText::ReadTextUTF16(CString path)
+bool CReadText::ReadTextUTF16(CString path, ULONGLONG offset)
 {
     data.clear();
 
@@ -64,16 +68,20 @@ bool CReadText::ReadTextUTF16(CString path)
     _wfopen_s(&fp, fileName, _T("r, ccs=UTF-16LE"));
 
     CStdioFile file(fp);
+    file.Seek(offset, CFile::begin);
     if (file)
     {
         // テキストファイルがオープンできた場合
         // テキストファイルのデータを1行ずつ読み込みます。
         // データがある間繰り返します。
-        CString read;
-        while (file.ReadString(read))
+        while (1)
         {
+            CFileData fd(file.GetPosition());
+            if (!file.ReadString(fd.string))
+                break;
+
             // データを読み込めた場合
-            data.push_back(read);
+            data.push_back(fd);
         }
         // テキストファイルをクローズします。
         file.Close();
@@ -87,23 +95,32 @@ bool CReadText::ReadTextUTF16(CString path)
 CString CReadText::getLine(int line)
 {
 	if (line < data.size())
-		return data[line];
+		return data[line].string;
 
 	return "";
 }
 
 
-long long CReadCurrentMeseta::getCurrentMeseta(CString path)
+long long CReadCurrentMesetaF::getCurrentMeseta(CString path)
 {
-
+    
     long long total = -1;
     const CString TAG = L"CurrentN-Meseta(";
 
-    if (ReadTextUTF16(path))
+
+    if (!CopyFile(path, L"log.tmp", false)) {
+        return total;
+    }
+
+    ULONGLONG seek = 0;
+    if (path == lastRead)
+        seek = lastPoint;
+
+    if (ReadTextUTF16(L"log.tmp", seek))
     {
         while (data.size() > 0)
         {
-            CString text = data.back();
+            CString text = data.back().string;
 
             int tagPoint = text.Find(TAG);
 
@@ -120,6 +137,8 @@ long long CReadCurrentMeseta::getCurrentMeseta(CString path)
             text.Replace(L" ", L"");
             text.Replace(L",", L"");
             total = _ttoll(text);
+            lastRead = path;
+            lastPoint = data.back().offset;
             break;
         }
     }
