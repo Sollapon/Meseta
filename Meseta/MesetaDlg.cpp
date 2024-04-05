@@ -178,12 +178,21 @@ bool CMesetaDlg::checkIniFile()
 {
 	CFileFind find;
 	CString filePath = _T("Meseta.ini");
+
+	bool readReg = false;
 	if (find.FindFile(filePath))
 	{ 
-		
+		CWinApp* pApp = AfxGetApp();
+		CString path = pApp->GetProfileString(L"LOG_DIR", L"MGS_LOG", L"");
+		readReg = (path == L"");
 	}
-	// 無かったら作る
 	else
+	{
+		readReg = true;
+	}
+
+	// 存在しないか空の場合はUTF16で作る
+	if (readReg )
 	{
 		FILE* fp;
 		_wfopen_s(& fp, filePath, _T("w, ccs=UTF-16LE"));

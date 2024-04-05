@@ -22,15 +22,18 @@ bool CEnumFile::enumFile(CString path, const char* ext, const char* search)
 	files.clear();
 
 	// ユーザーフォルダーをパスに置き換え
-	CString user = L"%UserProfile%";
-	int up = path.Find(user);
-	if (up >= 0)
+	CString user[2] = { L"%UserProfile%", L"%OneDrive%" };
+	for (int i = 0; i < 2; i++)
 	{
-		path.Delete(0, user.GetLength());
-		user.Replace(L"%", L"");
-		if (user.GetEnvironmentVariable(user) == 0)
-			return false;
-		path = user + path;
+		int up = path.Find(user[i]);
+		if (up >= 0)
+		{
+			path.Delete(0, user[i].GetLength());
+			user[i].Replace(L"%", L"");
+			if (user[i].GetEnvironmentVariable(user[i]) == 0)
+				return false;
+			path = user[i] + path;
+		}
 	}
 
 	fs::path input = path.GetString(); // 入力フォルダ
