@@ -182,9 +182,12 @@ bool CMesetaDlg::checkIniFile()
 	bool readReg = false;
 	if (find.FindFile(filePath))
 	{ 
+		
 		CWinApp* pApp = AfxGetApp();
-		CString path = pApp->GetProfileString(L"LOG_DIR", L"MGS_LOG", L"");
-		readReg = (path == L"");
+		CString path = pApp->GetProfileString(L"LOG_DIR", L"MGS_LOG", L"TEST");
+		if (path == L"TEST")
+			readReg = true;
+		
 	}
 	else
 	{
