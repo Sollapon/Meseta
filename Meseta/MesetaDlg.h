@@ -40,11 +40,14 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 public:
+	// 追加のメッセージハンドラ
 	virtual BOOL PreTranslateMessage(MSG* pMsg);	
 	afx_msg void OnDestroy();
 	afx_msg void OnClose();
-	afx_msg void OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2);
+
 	afx_msg void OnCustomdrawList1(NMHDR* pNMHDR, LRESULT* pResult);
+
+	afx_msg void OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2);
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 
 	afx_msg void OnBnClickedCheckPreSt();
@@ -52,12 +55,15 @@ public:
 
 	afx_msg void OnBnClickedCheckTraLog();
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+
 	afx_msg void OnBnClickedCheckAuto();
+		
 	afx_msg void OnBnClickedButtonEnd();
 	afx_msg void OnBnClickedButtonStart();
 	afx_msg void OnBnClickedButtonConfig();
 
 public:
+	// コントローラの変数
 	CListCtrl m_listCtrl;
 	CButton m_check_pre_status;
 	CButton m_check_pre_log;
@@ -70,23 +76,25 @@ public:
 	CButton m_buttonConfig;
 
 public:
+	// 独自の追加変数
 	MesetaDataCtrl mesetaCtrl;
 	CStatusWindow* m_statusWindow;
 	UINT m_timerID;
 	UINT m_autoFinishTimerID;
 	UINT m_padTimerID;
-	
-	void clearStatusWindow();
-
 	PAD_INFO padInfo;
 	INI_FILE iniData;
+	
+public:
+	bool SetHotkey();
+	bool DeleteHotkey();
+	void clearStatusWindow();	
 	bool checkIniFile();
 	BOOL readINI();
 	BOOL writeINI();
 	void Init(bool run);
 	void finishRecData(long long currentMeseta);
-	bool SetHotkey();
-	bool DeleteHotkey();
+	
 public:
 	static COLORREF Str2Col(CString col);
 	static CString Col2Str(COLORREF col);

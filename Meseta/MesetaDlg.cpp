@@ -13,6 +13,7 @@
 #include "CPropFunction.h"
 
 
+// Xinputライブラリ
 #pragma comment(lib, "xinput9_1_0.lib")
 
 
@@ -20,6 +21,7 @@
 #define new DEBUG_NEW
 #endif
 
+// NGSディレクトリ初期設定
 #include "EnumFile.h"
 #define DEFAULT_DOC L"%UserProfile%\\Documents"
 #define DEFAULT_NGS_LOG L"\\SEGA\\PHANTASYSTARONLINE2\\log_ngs\\"
@@ -27,9 +29,6 @@
 
 
 // CMesetaDlg ダイアログ
-
-
-
 CMesetaDlg::CMesetaDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MESETA_DIALOG, pParent)
 	, m_statusWindow(NULL)
@@ -75,7 +74,6 @@ END_MESSAGE_MAP()
 
 
 // CMesetaDlg メッセージ ハンドラー
-
 BOOL CMesetaDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -90,6 +88,7 @@ BOOL CMesetaDlg::OnInitDialog()
 	dwStyleEx |= LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES;
 	m_listCtrl.SetExtendedStyle(dwStyleEx);
 
+	// リストコントロールの列タイトル
 	m_listCtrl.InsertColumn(0, _T("id"), LVCFMT_CENTER, 25);
 	m_listCtrl.InsertColumn(1, _T("メセタ"), LVCFMT_CENTER, 90);
 	m_listCtrl.InsertColumn(2, _T("開始時刻"), LVCFMT_CENTER, 90);
@@ -97,76 +96,95 @@ BOOL CMesetaDlg::OnInitDialog()
 	m_listCtrl.InsertColumn(4, _T("メセタ/s"), LVCFMT_CENTER, 80);
 	m_listCtrl.InsertColumn(5, _T("インターバル"), LVCFMT_CENTER, 70);
 
+	// 終了ボタンは初期値無効化
 	m_buttonEnd.EnableWindow(false);
 
 	// ウィンドウの拡張スタイルを変更
 	ModifyStyleEx(0, WS_EX_LAYERED);
-
 	// レイヤードウィンドウの不透明度と透明のカラーキー
-	SetLayeredWindowAttributes(0, 255, LWA_ALPHA);
-	
+	SetLayeredWindowAttributes(0, 255, LWA_ALPHA);	
+
 	// サブウィンドウ作成
 	m_statusWindow = new CStatusWindow(this);
 	m_statusWindow->Create(IDD_FORMVIEW, this);
 	
+	// ステータスウィンドウ初期化
 	clearStatusWindow();
 
+	// INIファイルが存在するかチェック
 	checkIniFile();
 
 	// INIファイルの読み込み
 	readINI();
 
 	// サブカラー設定	
+	// INIの設定を読み込んだ後に
 	m_statusWindow->SetColor(iniData.dlgColor, iniData.fntColorN);
 
 	// ホットキー設定
+	// INIの設定を読み込んだ後に
 	SetHotkey();
+
+	// パッド情報初期化
+	// INIの設定を読み込んだ後に
+	padInfo.clear();
+	padInfo.setBit(0, iniData.padRec);
+	padInfo.setBit(1, iniData.padDel);
 	
-	// 初期化
+	// 初期化（実行無し)
 	Init(false);	
 	
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
 
-
+// ホットキーの設定
+// INIファイルの読み込み結果の繁栄
 bool CMesetaDlg::SetHotkey()
 {
+	// 記録キーの設定
 	UINT mod, vk;
 	CMesetaDlg::Str2VK(iniData.hotkeyRec, mod, vk);
-	BOOL ret = ::RegisterHotKey(GetSafeHwnd(), 100, mod, vk);
+	BOOL ret1, ret2;
+	ret1 = ::RegisterHotKey(GetSafeHwnd(), 100, mod, vk);
 	CString err = L"ホットキーが既に別のアプリで使用されています。\n設定から使用可能なキーを割り当ててください。\n";
-	if (!ret)
+	if (!ret1)
 	{
 		CString key = iniData.hotkeyRec;
-		MessageBox(err+L"("+key + L")", L"エラー");
+		MessageBox(err+L"("+key + L")", L"エラー"); // 既に登録済
 	}
 
+	// 削除キーの設定
 	if (iniData.hotkeyUseDell)
 	{
 		CMesetaDlg::Str2VK(iniData.hotkeyDel, mod, vk);
-		ret = ::RegisterHotKey(GetSafeHwnd(), 101, mod, vk);
-		if (!ret)
+		ret2 = ::RegisterHotKey(GetSafeHwnd(), 101, mod, vk);
+		if (!ret2)
 		{
 			CString key = iniData.hotkeyDel;
-			MessageBox(err + L"(" + key + L")", L"エラー");
+			MessageBox(err + L"(" + key + L")", L"エラー");// 既に登録済
 		}
 	}
 
-	return ret;
+	return (ret1&ret2);
 }
 
+
+// ホットキーの削除
 bool CMesetaDlg::DeleteHotkey()
 {
-	BOOL ret = ::UnregisterHotKey(GetSafeHwnd(), 100);
-	ret = ::UnregisterHotKey(GetSafeHwnd(), 101);
+	BOOL ret1 = ::UnregisterHotKey(GetSafeHwnd(), 100);
+	BOOL ret2 = ::UnregisterHotKey(GetSafeHwnd(), 101);
 
-	return ret;
+	return (ret1&ret2);
 }
 
+
+// ステータス表示の初期化
 void CMesetaDlg::clearStatusWindow()
 {
 	if (m_statusWindow)
 	{
+		// 表示を全て初期化する
 		m_statusWindow->SetTimeCount(0, 0, 0);
 		m_statusWindow->SetTotalMeseta(0, 0);
 		m_statusWindow->clearLog();
@@ -174,21 +192,26 @@ void CMesetaDlg::clearStatusWindow()
 }
 
 
+// INIファイルが存在するかチェックする
+// 無い場合は作る
 bool CMesetaDlg::checkIniFile()
 {
 	CFileFind find;
 	CString filePath = _T("Meseta.ini");
-
 	bool readReg = false;
+
+	// INIファイル有り
 	if (find.FindFile(filePath))
 	{ 
-		
 		CWinApp* pApp = AfxGetApp();
 		CString path = pApp->GetProfileString(L"LOG_DIR", L"MGS_LOG", L"TEST");
+
+		//　ファイルが存在してても中身が空の場合は読み取れない
 		if (path == L"TEST")
 			readReg = true;
 		
 	}
+	// INIファイル無し
 	else
 	{
 		readReg = true;
@@ -201,10 +224,12 @@ bool CMesetaDlg::checkIniFile()
 		_wfopen_s(& fp, filePath, _T("w, ccs=UTF-16LE"));
 		CStdioFile file(fp);
 		if (!file)
-			return false;			
-
+			return false;
 		CString path = L"ここに正しいngs_logフォルダのパスを設定してください。";
 
+		// ログファイルは標準ではカレントユーザーのDocumentsに作られるが
+		// OneDriveを使ってる人の場合はOneDriveのドキュメント以下に作られる
+		// レジストリからドキュメントフォルダがどっちに作られてるか読み取る
 		HKEY hKye;
 		if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders"), NULL, KEY_QUERY_VALUE, &hKye) == ERROR_SUCCESS)
 		{			
@@ -215,24 +240,25 @@ bool CMesetaDlg::checkIniFile()
 			LSTATUS err = RegQueryValueEx(hKye, TEXT("Personal"), 0, &dwType, (LPBYTE)lpData , &dwDataSize);
 			RegCloseKey(hKye);
 
+			// ngs_logファイルがあると思われる場所
 			path = CString(L"MGS_LOG=") + CString(lpData) + CString(DEFAULT_NGS_LOG) + CString(L"\n");
 		}
 
 		file.WriteString(L"[LOG_DIR]\n");
 		file.WriteString(path);
-
 		file.Close();
 	}
 	return true;
 }
 
-
+// INIファイルの読み取り
 BOOL CMesetaDlg::readINI()
 {
 	// NGS_LOGフォルダへのパスを読み込み
 	CWinApp* pApp = AfxGetApp();
 	iniData.ngs_log_path = pApp->GetProfileString(L"LOG_DIR", L"MGS_LOG", CString(DEFAULT_DOC)+CString(DEFAULT_NGS_LOG));
 
+	// 正しいフォルダが設定されてるかチェックする
 	BOOL ret = mesetaCtrl.Init(iniData.ngs_log_path);
 
 	if (!ret)
@@ -240,6 +266,7 @@ BOOL CMesetaDlg::readINI()
 		MessageBox(L"NGSログファイルが読み取れません。\n設定から正しいフォルダを指定してください。", L"エラー");
 	}
 	
+	// ダイアログの初期位置
 	CString ini;
 	ini = pApp->GetProfileString(L"DLG_POS", L"SAVE", L"FALSE");
 	int Dlg_top = pApp->GetProfileInt(L"DLG_POS", L"TOP", 0);
@@ -255,13 +282,12 @@ BOOL CMesetaDlg::readINI()
 	else
 		iniData.pos_save = true;
 
-
+	// 最前面設定
 	ini = pApp->GetProfileString(L"TOP_WINDOW", L"LOG", L"FALSE");
 	m_check_pre_log.SetCheck(ini == L"TRUE");
 
 	ini = pApp->GetProfileString(L"TOP_WINDOW", L"STATUS", L"TRUE");
 	m_check_pre_status.SetCheck((ini == L"TRUE") | (bool)m_check_pre_log.GetCheck());
-
 
 	bool check1 = m_check_pre_log.GetCheck();
 	SetWindowPos(check1 ? &CMesetaDlg::wndTopMost : &CMesetaDlg::wndNoTopMost, Dlg_left, Dlg_top, 0, 0, (SWP_NOSIZE | SWP_SHOWWINDOW));
@@ -270,7 +296,6 @@ BOOL CMesetaDlg::readINI()
 
 	bool check2 = m_check_pre_status.GetCheck();
 	m_statusWindow->setTop(check1||check2, Sub_Dlg_top, Sub_Dlg_left);
-
 
 	// 透明度
 	m_window_alpha.SetRange(32, 255);
@@ -281,7 +306,6 @@ BOOL CMesetaDlg::readINI()
 	m_check_trans_log.SetCheck((ini == L"TRUE"));
 	if(m_check_trans_log.GetCheck())
 		SetLayeredWindowAttributes(0, pos, LWA_ALPHA);
-
 
 	// 自動終了
 	ini = pApp->GetProfileString(L"AUTO_FINISH", L"USE", L"FALSE");
@@ -303,7 +327,6 @@ BOOL CMesetaDlg::readINI()
 	ini = pApp->GetProfileString(L"DISP", L"INTERVAL", L"FALSE");
 	iniData.disp_interval = (ini == L"TRUE");
 
-
 	// 色読み取り
 	ini = pApp->GetProfileString(L"COLORE", L"DIALOG", L"000000");
 	iniData.dlgColor = CMesetaDlg::Str2Col(ini);
@@ -313,7 +336,6 @@ BOOL CMesetaDlg::readINI()
 
 	ini = pApp->GetProfileString(L"COLORE", L"FONT_R", L"FF8000");
 	iniData.fntColorR = CMesetaDlg::Str2Col(ini);
-
 
 	// ホットキー読み取り
 	ini = pApp->GetProfileString(L"HOTKEY", L"USE_DELL", L"FALSE");
@@ -327,15 +349,12 @@ BOOL CMesetaDlg::readINI()
 	iniData.padRec = pApp->GetProfileString(L"GAMEPAD", L"REC", L"2+5");
 	iniData.padDel = pApp->GetProfileString(L"GAMEPAD", L"DEL", L"1+3+5");
 	iniData.padNum = pApp->GetProfileInt(L"GAMEPAD", L"NUM", 0);
-
-	padInfo.clear();
-	padInfo.setBit(0, iniData.padRec);
-	padInfo.setBit(1, iniData.padDel);
-
+	
 	return ret;
 }
 
-
+// INI読み取りユーティリティ
+// 文字列のカラーコードをCOLORREFに変換
 COLORREF CMesetaDlg::Str2Col(CString col)
 {
 	COLORREF c = 0;
@@ -350,10 +369,11 @@ COLORREF CMesetaDlg::Str2Col(CString col)
 
 		c = RGB( wcstol(r, NULL, 16), wcstol(g, NULL, 16), wcstol(b, NULL, 16));
 	}
-
 	return c;
 }
 
+// INI読み取りユーティリティ
+// COLORREFを文字列のカラーコードに変換
 CString CMesetaDlg::Col2Str(COLORREF col)
 {
 	WORD r = col & 0xFF;
@@ -366,7 +386,8 @@ CString CMesetaDlg::Col2Str(COLORREF col)
 	return c;
 }
 
-
+// INI読み取りユーティリティ
+// ホットキーの文字列をフラグに変換する
 bool CMesetaDlg::Str2VK(CString key, UINT& mod, UINT& vk)
 {
 	key.Replace(L" ", L"");
@@ -416,47 +437,55 @@ bool CMesetaDlg::Str2VK(CString key, UINT& mod, UINT& vk)
 }
 
 
-
+// INIファイルの書き込み
 BOOL CMesetaDlg::writeINI()
 {
 	RECT r;
 	GetWindowRect(&r);
 	CWinApp* pApp = AfxGetApp();
+
+	// ダイアログの位置
 	pApp->WriteProfileInt(L"DLG_POS", L"TOP", r.top);
 	pApp->WriteProfileInt(L"DLG_POS", L"LEFT", r.left);
 
+	// ログのパス
 	pApp->WriteProfileString(L"LOG_DIR", L"MGS_LOG", iniData.ngs_log_path);
+
+	// ウィンドウ位置の保存
 	pApp->WriteProfileString(L"DLG_POS", L"SAVE", iniData.pos_save?L"TRUE":L"FALSE");
+
+	// インターバル表示に変更
 	pApp->WriteProfileString(L"DISP", L"INTERVAL", iniData.disp_interval ? L"TRUE" : L"FALSE");
 
-
+	// 最前面設定
 	pApp->WriteProfileString(L"TOP_WINDOW", L"LOG", (bool)m_check_pre_log.GetCheck()?L"TRUE":L"FALSE");
 	pApp->WriteProfileString(L"TOP_WINDOW", L"STATUS", (bool)m_check_pre_status.GetCheck() ? L"TRUE" : L"FALSE");
 
-
+	// 透明度
 	pApp->WriteProfileInt(L"TRANSPARENT", L"ALPHA", m_window_alpha.GetPos());
 	pApp->WriteProfileString(L"TRANSPARENT", L"TRANS_LOG", (bool)m_check_trans_log.GetCheck() ? L"TRUE" : L"FALSE");
 
-
+	// 自動終了
 	pApp->WriteProfileString(L"AUTO_FINISH", L"USE", (bool)m_check_use_auto_finish.GetCheck() ? L"TRUE" : L"FALSE");
 	CString ini;
 	m_auto_finish_count.GetWindowText(ini);
 	pApp->WriteProfileInt(L"AUTO_FINISH", L"SECOND", _ttoi(ini));
 
+	// 自動更新
 	pApp->WriteProfileString(L"AUTO_REFRESH", L"USE", iniData.auto_refresh ? L"TRUE" : L"FALSE");
 	pApp->WriteProfileInt(L"AUTO_REFRESH", L"SECOND", iniData.refresh_second);
 
-
+	// 色
 	pApp->WriteProfileString(L"COLORE", L"DIALOG", CMesetaDlg::Col2Str(iniData.dlgColor));
 	pApp->WriteProfileString(L"COLORE", L"FONT_N", CMesetaDlg::Col2Str(iniData.fntColorN));
 	pApp->WriteProfileString(L"COLORE", L"FONT_R", CMesetaDlg::Col2Str(iniData.fntColorR));
 
-
+	// ホットキー
 	pApp->WriteProfileString(L"HOTKEY", L"USE_DELL", (bool)iniData.hotkeyUseDell ? L"TRUE" : L"FALSE");
 	pApp->WriteProfileString(L"HOTKEY", L"REC", iniData.hotkeyRec);
 	pApp->WriteProfileString(L"HOTKEY", L"DEL", iniData.hotkeyDel);
 
-
+	// ゲームパッド
 	pApp->WriteProfileString(L"GAMEPAD", L"USE", (bool)iniData.padUse ? L"TRUE" : L"FALSE");
 	pApp->WriteProfileString(L"GAMEPAD", L"REC", iniData.padRec);
 	pApp->WriteProfileString(L"GAMEPAD", L"DEL", iniData.padDel);
@@ -469,7 +498,6 @@ BOOL CMesetaDlg::writeINI()
 // ダイアログに最小化ボタンを追加する場合、アイコンを描画するための
 //  下のコードが必要です。ドキュメント/ビュー モデルを使う MFC アプリケーションの場合、
 //  これは、Framework によって自動的に設定されます。
-
 void CMesetaDlg::OnPaint()
 {
 	if (IsIconic())
@@ -503,12 +531,12 @@ HCURSOR CMesetaDlg::OnQueryDragIcon()
 }
 
 
+// メッセージ処理のオーバーライド
 BOOL CMesetaDlg::PreTranslateMessage(MSG* pMsg)
 {
-	// TODO: ここに特定なコードを追加するか、もしくは基底クラスを呼び出してください。
+	// ダイアログのEnterとEscの規定動作を殺す
 	if (WM_KEYDOWN == pMsg->message)
 	{
-
 		if (VK_RETURN == pMsg->wParam) {
 			return TRUE;
 		}
@@ -520,48 +548,45 @@ BOOL CMesetaDlg::PreTranslateMessage(MSG* pMsg)
 	return CDialogEx::PreTranslateMessage(pMsg);
 }
 
+// 記録終了時の一括処理
+// currentMeseta=-1 : ログに追加せずに強制終了
 void CMesetaDlg::finishRecData(long long currentMeseta)
 {
-	// 記録終了
+	// 最終結果取得
 	mesetaCtrl.endCurrentData(currentMeseta);
 
+	// 正常終了処理の場合はログに追加
 	if (currentMeseta >= 0)
 	{
-		// 計測終了
+		// 計測結果をログのリストに積む
 		MesetaData md = mesetaCtrl.currentMeseta;
 		md.idx = (int)mesetaCtrl.mesetaData.size() + 1;
-
 		long long lastTime = (mesetaCtrl.mesetaData.size() > 0) ? mesetaCtrl.mesetaData.back().end.GetTime() : mesetaCtrl.initialTime.GetTime();
 		md.interval = md.start.GetTime() - lastTime;		
-
 		mesetaCtrl.mesetaData.push_back(md);
 
-		// コントロール描画
+		// リストコントロールに追加
 		CString addText;
-
 		addText.Format(L"%d", md.idx);
 		m_listCtrl.InsertItem(0, addText);
 
-		//addText.Format(L"%lld", md.meseta);
 		addText = MesetaDataCtrl::MakeBigNumber(md.meseta);
 		m_listCtrl.SetItemText(0, 1, addText);
 
 		addText = md.start.Format(L"%m/%d %H:%M:%S");
 		m_listCtrl.SetItemText(0, 2, addText);
 
-		//long long time = md.end.GetTime() - md.start.GetTime();
 		addText.Format(L"%lld秒", md.recTime);
 		m_listCtrl.SetItemText(0, 3, addText);
 
-		//addText.Format(L"%lld", md.mps);
 		addText = MesetaDataCtrl::MakeBigNumber(md.mps);
 		addText += L"/s";
-		m_listCtrl.SetItemText(0, 4, addText);
-		
+		m_listCtrl.SetItemText(0, 4, addText);		
 		
 		m_listCtrl.SetItemText(0, 5, MesetaDataCtrl::Time2Min(md.interval));
 	}	
 
+	// 自動終了処理の変更を有効化
 	m_check_use_auto_finish.EnableWindow(true);
 	if (m_check_use_auto_finish.GetCheck())
 		m_auto_finish_count.EnableWindow(true);
@@ -572,16 +597,16 @@ void CMesetaDlg::finishRecData(long long currentMeseta)
 	m_statusWindow->SetColor(iniData.dlgColor, iniData.fntColorN);
 	m_statusWindow->SetTotalMeseta(mesetaCtrl.increasedMeseta, mesetaCtrl.mesetaPerHour);
 	m_statusWindow->SetLog(mesetaCtrl.mesetaData, iniData.disp_interval);
+	CString info;
+	info.Format(L"%s\n%s", L"記録開始", iniData.hotkeyRec.GetString());
+	m_statusWindow->SetInfo(info);
 
+	// 自動終了のタイマーが動いてたら殺す
 	if (m_autoFinishTimerID != 0)
 	{
 		KillTimer(m_autoFinishTimerID);
 		m_autoFinishTimerID = 0;
-	}
-
-	CString info;
-	info.Format(L"%s\n%s", L"記録開始", iniData.hotkeyRec.GetString());
-	m_statusWindow->SetInfo(info);
+	}	
 }
 
 
