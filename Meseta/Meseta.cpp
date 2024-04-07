@@ -38,14 +38,16 @@ CMesetaApp theApp;
 BOOL CMesetaApp::InitInstance()
 {
 
-	// 同時起動を禁止する
+	// 多重起動を禁止する
 	m_hMutex = CreateMutex(FALSE, 0, L"Meseta.exe");
 	if (::GetLastError() == ERROR_ALREADY_EXISTS)
 	{
-		CloseHandle(m_hMutex);
+		if (m_hMutex)
+		{
+			CloseHandle(m_hMutex);
+		}		
 		return FALSE;  // InitInstance関数はFALSEを返すと終了する
 	}
-
 
 	// アプリケーション マニフェストが visual スタイルを有効にするために、
 	// ComCtl32.dll Version 6 以降の使用を指定する場合は、
@@ -119,8 +121,7 @@ BOOL CMesetaApp::InitInstance()
 	return FALSE;
 }
 
-
-
+// 終了時にミューテックス削除
 int CMesetaApp::ExitInstance()
 {
 	// TODO: ここに特定なコードを追加するか、もしくは基底クラスを呼び出してください。
@@ -131,11 +132,10 @@ int CMesetaApp::ExitInstance()
 	return CWinApp::ExitInstance();
 }
 
-
+// ヘルプ操作は無効化
 afx_msg void CMesetaApp::OnHelp()
 {
-
-	ShellExecute(m_pMainWnd->GetSafeHwnd(), L"open", L"http://www.yahoo.co.jp/", NULL, NULL, SW_SHOW);
+	//ShellExecute(m_pMainWnd->GetSafeHwnd(), L"open", L"https://docs.google.com/spreadsheets/d/1qWgByQqiZloYVrno6Mhkq_w8FEY5__-EFlBvo-ua8SY/", NULL, NULL, SW_SHOW);
 	return;
 	//return CWinApp::OnHelp();
 }

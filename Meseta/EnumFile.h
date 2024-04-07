@@ -13,7 +13,7 @@ public:
 	CString file;
 	int lastWrite;
 
-
+	// 更新日時順にソート用
 	static bool compare(const CFileInfo& a, const CFileInfo& b) { return a.lastWrite > b.lastWrite; }
 };
 
@@ -27,7 +27,6 @@ public:
 
 	bool enumFile(CString path, const char* ext, const char* search = "" );
 	CString getFile(size_t idx) { return (files[idx].file); }
-
 	size_t getSize() { return files.size(); }
 
 private:

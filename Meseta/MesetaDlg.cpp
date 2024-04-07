@@ -142,8 +142,8 @@ bool CMesetaDlg::SetHotkey()
 	// 記録キーの設定
 	UINT mod, vk;
 	CMesetaDlg::Str2VK(iniData.hotkeyRec, mod, vk);
-	BOOL ret1, ret2;
-	ret1 = ::RegisterHotKey(GetSafeHwnd(), 100, mod, vk);
+	BOOL ret1 = ::RegisterHotKey(GetSafeHwnd(), 100, mod, vk);
+	BOOL ret2 = true;
 	CString err = L"ホットキーが既に別のアプリで使用されています。\n設定から使用可能なキーを割り当ててください。\n";
 	if (!ret1)
 	{
