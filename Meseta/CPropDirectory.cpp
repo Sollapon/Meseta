@@ -26,7 +26,7 @@ void CPropDirectory::DoDataExchange(CDataExchange* pDX)
 {
 	CMFCPropertyPage::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_EDIT_LOG_NGS, m_edit_log_ngs);
-	DDX_Control(pDX, IDC_EDIT2, m_edit_directory);
+	DDX_Control(pDX, IDC_EDIT_DIR_HELP, m_edit_directory);
 }
 
 

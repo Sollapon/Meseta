@@ -8,7 +8,6 @@
 #define IDD_PROPPAGE_FUNCTION           107
 #define IDD_PROPPAGE_DIRECTORY          108
 #define IDR_MAINFRAME                   128
-#define IDI_ICON1                       134
 #define IDC_BUTTON_START                1000
 #define IDC_LIST1                       1001
 #define IDC_BUTTON_END                  1002
@@ -18,7 +17,6 @@
 #define IDC_STATIC_MESETA2              1006
 #define IDC_STATIC_MESETA3              1007
 #define IDC_STATIC_INFO                 1008
-#define IDC_EDIT1                       1009
 #define IDC_EDIT_LOG_NGS                1009
 #define IDC_STATIC_TIME                 1010
 #define IDC_SLIDER1                     1013
@@ -32,11 +30,11 @@
 #define IDC_HK_ALT                      1026
 #define IDC_COMBO_HOTKEY                1027
 #define IDC_HK_WIN                      1028
-#define IDC_BUTTON_LOG_NGS              1028
-#define IDC_CHECK_AUTO_REFRESH          1029
-#define IDC_COMBO_AUTO_REFRESH          1030
-#define IDC_CHECK_SAVE_POS              1031
-#define IDC_EDIT2                       1032
+#define IDC_BUTTON_LOG_NGS              1029
+#define IDC_CHECK_AUTO_REFRESH          1030
+#define IDC_COMBO_AUTO_REFRESH          1031
+#define IDC_CHECK_SAVE_POS              1032
+#define IDC_EDIT_DIR_HELP               1033
 
 // Next default values for new objects
 // 
