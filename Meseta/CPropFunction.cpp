@@ -1,4 +1,6 @@
 ﻿// CPropFunction.cpp : 実装ファイル
+// 
+// 設定：動作タブ
 //
 
 #include "pch.h"
@@ -30,7 +32,6 @@ void CPropFunction::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK_SAVE_POS, m_check_save_pos);
 }
 
-
 BEGIN_MESSAGE_MAP(CPropFunction, CMFCPropertyPage)
 	ON_BN_CLICKED(IDC_CHECK_AUTO_REFRESH, &CPropFunction::OnBnClickedCheckAutoRefresh)
 	ON_CBN_SELCHANGE(IDC_COMBO_AUTO_REFRESH, &CPropFunction::OnCbnSelchangeComboAutoRefresh)
@@ -41,42 +42,16 @@ END_MESSAGE_MAP()
 
 // CPropFunction メッセージ ハンドラー
 
-
-void CPropFunction::OnBnClickedCheckAutoRefresh()
-{
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-	SetModified();
-}
-
-
-void CPropFunction::OnCbnSelchangeComboAutoRefresh()
-{
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-	SetModified();
-}
-
-void CPropFunction::OnBnClickedCheckSavePos()
-{
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-	SetModified();
-}
-
-
-void CPropFunction::OnEditchangeComboAutoRefresh()
-{
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-	SetModified();
-}
-
-
+// 初期化
 BOOL CPropFunction::OnInitDialog()
 {
 	CMFCPropertyPage::OnInitDialog();
 
-	// TODO: ここに初期化を追加してください
+	// INIデータから初期値をセット
 	m_check_auto_refresh.SetCheck(parentDlg->iniData.auto_refresh);
 	m_check_save_pos.SetCheck(parentDlg->iniData.pos_save);
 
+	// 自動更新時間の文字列セット
 	CString time;
 	time.Format(L"%d", parentDlg->iniData.refresh_second);
 	m_combo_auto_refresh.SetWindowText(time);
@@ -85,30 +60,46 @@ BOOL CPropFunction::OnInitDialog()
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
 }
 
-
+// 適用またはOK時にINIデータを更新する
 void CPropFunction::OnOK()
 {
-	// TODO: ここに特定なコードを追加するか、もしくは基底クラスを呼び出してください。
-
-
+	// INI更新
 	parentDlg->iniData.auto_refresh = m_check_auto_refresh.GetCheck();
 	parentDlg->iniData.pos_save = m_check_save_pos.GetCheck();
 
 	CString time;
 	m_combo_auto_refresh.GetWindowText(time);
 	int int_time = _ttoi(time);
-	if (int_time <= 0)
+	if (int_time <= 0) // コンボコントロールなので不正な値が入る可能性がある
 	{
 		int_time = 10;
 		m_combo_auto_refresh.SetWindowText(L"10");
 	}
-	
 	parentDlg->iniData.refresh_second = int_time;
-
 
 	CMFCPropertyPage::OnOK();
 }
 
+// チェックボックスをクリックしたら変更フラグ立てる
+void CPropFunction::OnBnClickedCheckAutoRefresh()
+{
+	SetModified();
+}
 
+// チェックボックスをクリックしたら変更フラグ立てる
+void CPropFunction::OnCbnSelchangeComboAutoRefresh()
+{
+	SetModified();
+}
 
+// チェックボックスをクリックしたら変更フラグ立てる
+void CPropFunction::OnBnClickedCheckSavePos()
+{
+	SetModified();
+}
 
+// コンボコントロールの文字列が変更された
+void CPropFunction::OnEditchangeComboAutoRefresh()
+{
+	SetModified();
+}

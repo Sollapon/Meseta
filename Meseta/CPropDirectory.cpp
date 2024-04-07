@@ -1,4 +1,6 @@
 ﻿// CPropDirectory.cpp : 実装ファイル
+// 
+// 設定・動作ディレクトリ
 //
 
 #include "pch.h"
@@ -38,46 +40,15 @@ END_MESSAGE_MAP()
 
 // CPropDirectory メッセージ ハンドラー
 
-
-void CPropDirectory::OnEnChangeEditLogNgs()
-{
-	// TODO: これが RICHEDIT コントロールの場合、このコントロールが
-	// この通知を送信するには、CMFCPropertyPage::OnInitDialog() 関数をオーバーライドし、
-	// CRichEditCtrl().SetEventMask() を関数し呼び出します。
-	// OR 状態の ENM_CHANGE フラグをマスクに入れて呼び出す必要があります。
-
-	// TODO: ここにコントロール通知ハンドラー コードを追加してください。
-	SetModified();
-}
-
-
-void CPropDirectory::OnBnClickedButtonLogNgs()
-{
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-	CFolderPickerDialog folderDialog;
-
-	// ダイアログ表示
-	if (folderDialog.DoModal() == IDOK)
-	{
-		// [フォルダーの選択]ボタン押下
-
-		// フルパス取得
-		CString fullPathName = folderDialog.GetPathName();
-
-		// ここでfullPathNameに格納されたフルパスを使用する
-		m_edit_log_ngs.SetWindowText(fullPathName);
-	}
-}
-
-
+// 初期化
 BOOL CPropDirectory::OnInitDialog()
 {
 	CMFCPropertyPage::OnInitDialog();
 
-	// TODO: ここに初期化を追加してください
+	// INIからパス読み取り
 	m_edit_log_ngs.SetWindowText(parentDlg->iniData.ngs_log_path);
 
-	//m_edit_directory.FmtLines(true);
+	// ヘルプ
 	m_edit_directory.SetWindowText(L"NGSのアクションログファイルは通常\r\n%UserProfile%\\Documents\\SEGA\r\nもしくは\r\n%OneDrive%\\ドキュメント\\SEGA\r\n以下にある\r\n\\PHANTASYSTARONLINE2\\log_ngs\r\nに保存されています。\r\nエラーが出る場合は正しいパスを指定してください。");
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -85,11 +56,9 @@ BOOL CPropDirectory::OnInitDialog()
 	
 }
 
-
 void CPropDirectory::OnOK()
 {
-	// TODO: ここに特定なコードを追加するか、もしくは基底クラスを呼び出してください。
-
+	// 指定されたパスをチェック
 	CString path;
 	m_edit_log_ngs.GetWindowText(path);
 	bool ret = parentDlg->mesetaCtrl.Init(path, false);
@@ -100,9 +69,34 @@ void CPropDirectory::OnOK()
 	}
 	else
 	{
+		// パス指定が不正
 		MessageBox(L"ログファイルが見つかりませんでした。\n正しいパスを設定してください。", L"エラー");
 		SetModified();
 	}
 
 	CMFCPropertyPage::OnOK();
+}
+
+// ディレクトリのパスが変更された
+void CPropDirectory::OnEnChangeEditLogNgs()
+{
+	SetModified();
+}
+
+// ディレクトリ変更ボタン
+void CPropDirectory::OnBnClickedButtonLogNgs()
+{
+	// ファイル検索ダイアログ
+	CFolderPickerDialog folderDialog;
+
+	// ダイアログ表示
+	if (folderDialog.DoModal() == IDOK)
+	{
+		// [フォルダーの選択]ボタン押下
+		// フルパス取得
+		CString fullPathName = folderDialog.GetPathName();
+
+		// ここでfullPathNameに格納されたフルパスを使用する
+		m_edit_log_ngs.SetWindowText(fullPathName);
+	}
 }

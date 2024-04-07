@@ -1,10 +1,12 @@
-﻿#pragma once
-#include "afxdialogex.h"
+﻿// CPropDirectory ダイアログ
+// 
+// 設定・動作ディレクトリ
+//
+#pragma once
 
+#include "afxdialogex.h"
 #include "MesetaDlg.h"
 
-
-// CPropDirectory ダイアログ
 
 class CPropDirectory : public CMFCPropertyPage
 {
@@ -26,11 +28,16 @@ protected:
 
 private:
 	CMesetaDlg* parentDlg;
+
 public:
-	CEdit m_edit_log_ngs;
-	afx_msg void OnEnChangeEditLogNgs();
-	afx_msg void OnBnClickedButtonLogNgs();
+	// 追加のメッセージハンドラ	
 	virtual BOOL OnInitDialog();
 	virtual void OnOK();
+	afx_msg void OnEnChangeEditLogNgs();
+	afx_msg void OnBnClickedButtonLogNgs();
+
+public:
+	// コントロール変数
+	CEdit m_edit_log_ngs;
 	CEdit m_edit_directory;
 };

@@ -25,16 +25,22 @@
 #define IDC_CHECK_PRE_LOG               1021
 #define IDC_CHECK_TRA_LOG               1022
 #define IDC_CHECK_AUTO                  1023
-#define IDC_HK_SHIHT                    1024
+#define IDC_HK_SHIFT                    1024
 #define IDC_HK_CTRL                     1025
 #define IDC_HK_ALT                      1026
 #define IDC_COMBO_HOTKEY                1027
 #define IDC_HK_WIN                      1028
 #define IDC_BUTTON_LOG_NGS              1029
-#define IDC_CHECK_AUTO_REFRESH          1030
-#define IDC_COMBO_AUTO_REFRESH          1031
-#define IDC_CHECK_SAVE_POS              1032
-#define IDC_EDIT_DIR_HELP               1033
+#define IDC_HK_SHIFT2                   1030
+#define IDC_CHECK_AUTO_REFRESH          1031
+#define IDC_HK_CTRL2                    1032
+#define IDC_COMBO_AUTO_REFRESH          1033
+#define IDC_PROP_CHECK_DEL_USE          1133
+#define IDC_HK_ALT2                     1034
+#define IDC_CHECK_SAVE_POS              1035
+#define IDC_HK_WIN2                     1036
+#define IDC_EDIT_DIR_HELP               1037
+#define IDC_COMBO_HOTKEY2               1038
 
 // Next default values for new objects
 // 
@@ -42,7 +48,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        143
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1033
+#define _APS_NEXT_CONTROL_VALUE         1034
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

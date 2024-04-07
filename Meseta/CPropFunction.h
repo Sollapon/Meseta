@@ -1,10 +1,12 @@
-﻿#pragma once
-#include "afxdialogex.h"
+﻿// CPropFunction ダイアログ
+// 
+// 設定・動作タブ
+//
+#pragma once
 
+#include "afxdialogex.h"
 #include "MesetaDlg.h"
 
-
-// CPropFunction ダイアログ
 
 class CPropFunction : public CMFCPropertyPage
 {
@@ -24,16 +26,18 @@ private:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV サポート
-
 	DECLARE_MESSAGE_MAP()
+
 public:
+	virtual BOOL OnInitDialog();
+	virtual void OnOK();
 	afx_msg void OnBnClickedCheckAutoRefresh();
 	afx_msg void OnCbnSelchangeComboAutoRefresh();
+	afx_msg void OnEditchangeComboAutoRefresh();
+	afx_msg void OnBnClickedCheckSavePos();
+
+public:
 	CButton m_check_auto_refresh;
 	CComboBox m_combo_auto_refresh;
 	CButton m_check_save_pos;
-	virtual BOOL OnInitDialog();
-	virtual void OnOK();
-	afx_msg void OnBnClickedCheckSavePos();
-	afx_msg void OnEditchangeComboAutoRefresh();
 };
