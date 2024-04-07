@@ -13,7 +13,6 @@
 #include "CPropDirectory.h"
 #include "CPropFunction.h"
 
-#include "EnumFile.h"
 
 // Xinputライブラリ
 #pragma comment(lib, "xinput9_1_0.lib")

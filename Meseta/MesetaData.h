@@ -1,3 +1,4 @@
+// メセタデータの管理用クラス
 #pragma once
 
 #include <afx.h>
@@ -6,6 +7,8 @@
 #include "EnumFile.h"
 #include "ReadText.h"
 
+
+// 一回分のログ記録データ
 class MesetaData
 {
 public:
@@ -44,6 +47,7 @@ public:
 	long long interval;
 };
 
+// 記録中のデータ
 class CurrentMesetaData : public MesetaData
 {
 public:
@@ -68,7 +72,7 @@ public:
 	}
 };
 
-
+// データ管理クラス
 class MesetaDataCtrl
 {
 public:
@@ -76,18 +80,15 @@ public:
 	void clear();
 
 	bool Init(CString path, bool run = false);
-	long long getCurrentMeseta(bool init=false);
 
+	long long getCurrentMeseta(bool init=false);
 	void setCurrentData(long long meseta, int auto_count = 0);
 	void endCurrentData(long long meseta);
 
-
-	void pop() { mesetaData.pop_back(); }
-
 	bool writeData();
 
+	void pop() { mesetaData.pop_back(); }
 	bool isRunning() { return isActive; }
-
 
 	CString getElapsedTime(CTime t);
 	
@@ -107,6 +108,7 @@ public:
 	BOOL isActive;
 
 public:
+	// ユーティリティ
 	static CString MakeBigNumber(long long num)
 	{
 		CString strNum;

@@ -1,7 +1,10 @@
+// MesetaDataCtrl
+// メセタデータの制御クラス
+// 
 #include "MesetaData.h"
 
-
-
+// コンストラクタ
+// 初期化のみ
 MesetaDataCtrl::MesetaDataCtrl()
 	: initialMeseta(0)
 	, increasedMeseta(0)
@@ -12,23 +15,37 @@ MesetaDataCtrl::MesetaDataCtrl()
 
 }
 
+// リセット（実行終了)
+void MesetaDataCtrl::clear()
+{
+	mesetaData.clear();
+	currentMeseta.clear();
+	isActive = false;
+}
 
+// 初期化
+// CString path：log_ngsのパス
+//bool run：実行あり true、実行無し false
 bool MesetaDataCtrl::Init(CString path, bool run)
 {
+	// 起動時の時間を記録する
 	initialTime = CTime::GetCurrentTime();
 	elapsedTime = 0;
 	increasedMeseta = 0;
 	mesetaPerHour = 0;
 
-	readMeseta.Clear();
-	mesetaData.clear();
-	currentMeseta.clear();	
+	// 諸々初期化
+	readMeseta.Clear(); // テキスト読み取りクラス
+	mesetaData.clear(); // ログデータ
+	currentMeseta.clear(); // 記録中データ
 
+	// ngs_logフォルダからActionLogファイルを列挙する
 	enumFile.clear();
 	bool ret = enumFile.enumFile(path, ".txt", "ActionLog");
 	if (!ret)
 		return false; // ActionLogファイルが一個もない
 
+	// 起動時のメセタ記録
 	initialMeseta = getCurrentMeseta(true);
 	if (initialMeseta < 0)
 	{
@@ -36,16 +53,68 @@ bool MesetaDataCtrl::Init(CString path, bool run)
 		return false; // 一度もメセタを取得してない
 	}	
 
+	// 実行
 	isActive = run;
 
 	return true;
 }
 
+// 現在のメセタ読み取り
+long long MesetaDataCtrl::getCurrentMeseta(bool init)
+{
+	long long m = -1;
 
+	// 列挙済みログファイルを最新順に操作する
+	for (size_t i = 0; i < enumFile.getSize(); i++)
+	{
+		CString file = enumFile.getFile(i);
+
+		// メセタログが見つかり次第終了
+		m = readMeseta.getCurrentMeseta(file);
+		if (m >= 0)
+			break;
+	}
+
+	// メセタの増加量とMPHを計算
+	if (!init && m >= 0)
+	{
+		increasedMeseta = m - initialMeseta;
+		long double second = (long double)elapsedTime / 3600.0;
+		mesetaPerHour = (second > 0) ? (long long)((long double)increasedMeseta / second) : 0;
+	}
+
+	// 現在のメセタを返す
+	return m;
+}
+
+// 記録データを開始値をセット
+void MesetaDataCtrl::setCurrentData(long long meseta, int auto_count)
+{
+	currentMeseta.clear();
+	currentMeseta.start = CTime::GetCurrentTime();
+	currentMeseta.isRun = true;
+	currentMeseta.startMesta = meseta;
+	currentMeseta.auto_count = auto_count;
+	currentMeseta.recTime = auto_count;
+}
+
+// 記録データの終了値
+void MesetaDataCtrl::endCurrentData(long long meseta)
+{
+	currentMeseta.end = CTime::GetCurrentTime();
+	currentMeseta.endMeseta = meseta;
+	currentMeseta.meseta = currentMeseta.endMeseta - currentMeseta.startMesta;
+	currentMeseta.calcMPS();
+	currentMeseta.isRun = false;
+	currentMeseta.auto_count = 0;
+}
+
+// ログデータをCSVファイルに書き出す
 bool MesetaDataCtrl::writeData()
 {
 	isActive = false;
 
+	// 現在時刻をファイル名にする
 	CTime cTime = CTime::GetCurrentTime();           // 現在時刻
 	CString fileName = cTime.Format("%Y-%m%d-%H%M%S.csv");
 	FILE* fp;
@@ -79,13 +148,7 @@ bool MesetaDataCtrl::writeData()
 			
 			write.Format(L"%d, %lld, %s, %lld秒, %lld/s, %s\n", ref.idx, ref.meseta, day.GetString(), ref.recTime, ref.mps, interval.GetString());
 			file.WriteString(write);
-		}
-
-		/*
-		file.WriteString(L",\n");
-		write.Format(L",時給,%lld\n", mesetaPerHour);
-		file.WriteString(write);
-		*/
+		}		
 
 		file.Close();
 	}
@@ -102,56 +165,3 @@ CString MesetaDataCtrl::getElapsedTime(CTime t)
 	return (t-initialTime).Format(L"%H:%M:%S");
 }
 
-
-long long MesetaDataCtrl::getCurrentMeseta(bool init)
-{
-	long long m = -1;
-
-	for (size_t i = 0; i < enumFile.getSize(); i++)
-	{
-		CString file = enumFile.getFile(i);
-
-		//
-		m = readMeseta.getCurrentMeseta(file);
-		if (m >= 0)
-			break;
-	}
-
-	if (!init && m >= 0)
-	{
-		increasedMeseta = m - initialMeseta;
-		long double second = (long double)elapsedTime / 3600.0;
-		mesetaPerHour = (second > 0) ? (long long)((long double)increasedMeseta / second) : 0;
-	}
-
-	return m;
-}
-
-void MesetaDataCtrl::clear()
-{
-	mesetaData.clear();
-	currentMeseta.clear();
-	isActive = false;
-}
-
-
-void MesetaDataCtrl::setCurrentData(long long meseta, int auto_count)
-{
-	currentMeseta.clear();
-	currentMeseta.start = CTime::GetCurrentTime();
-	currentMeseta.isRun = true;
-	currentMeseta.startMesta = meseta;
-	currentMeseta.auto_count = auto_count;
-	currentMeseta.recTime = auto_count;
-}
-
-
-void MesetaDataCtrl::endCurrentData(long long meseta)
-{
-	currentMeseta.end = CTime::GetCurrentTime();
-	currentMeseta.endMeseta = meseta;
-	currentMeseta.meseta = currentMeseta.endMeseta - currentMeseta.startMesta;
-	currentMeseta.calcMPS();
-	currentMeseta.isRun = false;
-	currentMeseta.auto_count = 0;
-}
