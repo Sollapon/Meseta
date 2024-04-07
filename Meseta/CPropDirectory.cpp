@@ -32,7 +32,6 @@ void CPropDirectory::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_SAVE_DIR, m_edit_save_dir);
 }
 
-
 BEGIN_MESSAGE_MAP(CPropDirectory, CMFCPropertyPage)
 	ON_EN_CHANGE(IDC_EDIT_LOG_NGS, &CPropDirectory::OnEnChangeEditLogNgs)
 	ON_BN_CLICKED(IDC_BUTTON_LOG_NGS, &CPropDirectory::OnBnClickedButtonLogNgs)
