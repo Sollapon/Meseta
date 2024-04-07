@@ -1,8 +1,9 @@
+// パッド情報管理クラス
+
 #pragma once
 
 #include <afx.h>
 #include <vector>
-
 
 #include "framework.h"
 #include "xinput.h"
@@ -13,6 +14,7 @@ class PAD_INFO
 public:
 	static const unsigned int buttonNum = 2;
 
+	// ボタン番号とフラグ
 	const WORD xinput_button[16] = {
 		0,
 		XINPUT_GAMEPAD_A,
@@ -32,12 +34,12 @@ public:
 		0,
 	};
 
-
 	PAD_INFO()
 		: padBit(0)
 	{
 		clear();
 	}
+
 	void clear()
 	{
 		padBit = 0;
@@ -46,8 +48,7 @@ public:
 			checkBit[i] = 0;
 		}
 	}
-	WORD padBit;
-	WORD checkBit[buttonNum];
+
 	void setBit(int idx, CString str)
 	{
 		str.Replace(L" ", L"");
@@ -74,6 +75,7 @@ public:
 		}
 	}
 
+	// 指定したボタンが押されてるかチェック
 	bool getTrigger(int idx, DWORD button)
 	{
 		bool chek1 = (button & checkBit[idx]) == checkBit[idx];// 今回押されている
@@ -81,4 +83,8 @@ public:
 
 		return (chek1 && !check2);
 	}
+
+public:
+	WORD padBit;
+	WORD checkBit[buttonNum];
 };

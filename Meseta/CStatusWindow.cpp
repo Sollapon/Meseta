@@ -37,19 +37,59 @@ END_MESSAGE_MAP()
 
 // CStatusWindow メッセージ ハンドラー
 
+// 初期化
+BOOL CStatusWindow::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
 
+	// ウィンドウの拡張スタイルを変更
+	ModifyStyleEx(0, WS_EX_LAYERED);
+	SetLayeredWindowAttributes(0, 255, LWA_ALPHA);
+
+	// 色変更用ブラシ
+	m_brDlg.CreateSolidBrush(RGB(0, 0, 0));
+	m_fontColor = RGB(255, 255, 255);
+
+	return TRUE;  // return TRUE unless you set the focus to a control
+	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
+}
+
+// メッセージ処理
+BOOL CStatusWindow::PreTranslateMessage(MSG* pMsg)
+{
+	if (WM_KEYDOWN == pMsg->message)
+	{
+		// ダイアログのEnterとEscの規定処理を殺す
+		if (VK_RETURN == pMsg->wParam) {
+			return TRUE;
+		}
+		else if (VK_ESCAPE == pMsg->wParam) {
+			return TRUE;
+		}
+	}
+	else if (WM_SYSCOMMAND)
+	{
+		// 親ウィンドウからのクローズ命令以外を受け付けない
+		if (pMsg->wParam == SC_CLOSE)
+		{
+			return(TRUE);
+		}
+	}
+	return CDialogEx::PreTranslateMessage(pMsg);
+}
+
+// 終了処理
 void CStatusWindow::OnNcDestroy()
 {
 	CDialogEx::OnNcDestroy();
 
-	// TODO: ここにメッセージ ハンドラー コードを追加します。
+	// 自分自身を削除する
 	delete this;
 }
 
-
+// ウィンドウ全体でドラッグできるようにする
 LRESULT CStatusWindow::OnNcHitTest(CPoint point)
 {
-	// TODO: ここにメッセージ ハンドラー コードを追加するか、既定の処理を呼び出します。
 	LRESULT lResult = CDialogEx::OnNcHitTest(point);
 	if ((HTCLIENT == lResult))
 	{
@@ -58,33 +98,52 @@ LRESULT CStatusWindow::OnNcHitTest(CPoint point)
 	return lResult;
 }
 
-
-BOOL CStatusWindow::OnInitDialog()
+// ダイアログの色変更対応
+HBRUSH CStatusWindow::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
-	CDialogEx::OnInitDialog();
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
 
-	// TODO: ここに初期化を追加してください
-	// ウィンドウの拡張スタイルを変更
-	ModifyStyleEx(0, WS_EX_LAYERED);
-	SetLayeredWindowAttributes(0, 255, LWA_ALPHA);
+	switch (nCtlColor)
+	{
 
-	m_brDlg.CreateSolidBrush(RGB(0, 0, 0));
-	m_fontColor = RGB(255, 255, 255);
+	case CTLCOLOR_STATIC:
+		pDC->SetBkMode(TRANSPARENT);
+		pDC->SetTextColor(m_fontColor);
+		return (HBRUSH)m_brDlg;
 
-	GetDlgItem(IDC_STATIC_MESETA1)->SetWindowText(L"[01]\n17,000,000\n(1,500,000/s)");
-	GetDlgItem(IDC_STATIC_MESETA2)->SetWindowText(L"[01]\n17,000,000\n(150000/s)");
-	GetDlgItem(IDC_STATIC_MESETA3)->SetWindowText(L"[01]\n17,000,000\n(150000/s)");
+	case CTLCOLOR_DLG:
+		pDC->SetTextColor(m_fontColor);
+		return (HBRUSH)m_brDlg;
+	default:
+		break;
+	}
 
-	return TRUE;  // return TRUE unless you set the focus to a control
-	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
+	return hbr;
 }
 
+// 終了処理
+void CStatusWindow::OnDestroy()
+{
+	CDialogEx::OnDestroy();
+
+	// ブラシ削除
+	m_brDlg.DeleteObject();
+
+	// 終了時の座標をINIに保存
+	RECT r;
+	CWinApp* pApp = AfxGetApp();
+	GetWindowRect(&r);
+	pApp->WriteProfileInt(L"DLG_POS", L"SUB_TOP", r.top);
+	pApp->WriteProfileInt(L"DLG_POS", L"SUB_LEFT", r.left);
+}
+
+// 以下情報更新関数
+//
 // α値設定
 void CStatusWindow::SetAlpha(BYTE alpha)
 {
 	SetLayeredWindowAttributes(0, alpha, LWA_ALPHA);
 }
-
 
 // 背景カラー設定
 void CStatusWindow::SetColor(COLORREF c)
@@ -95,29 +154,32 @@ void CStatusWindow::SetColor(COLORREF c)
 	SetBackgroundColor(c);
 }
 
-void CStatusWindow::SetColor(COLORREF dlgColor, COLORREF fontColor)
-{
-	SetFontColor(fontColor);
-	SetColor(dlgColor);
-}
-
-
 // フォントカラー設定
 void CStatusWindow::SetFontColor(COLORREF c)
 {
 	m_fontColor = c;
 }
 
+// 背景とフォント同時変更
+void CStatusWindow::SetColor(COLORREF dlgColor, COLORREF fontColor)
+{
+	SetFontColor(fontColor);
+	SetColor(dlgColor);
+}
+
+// 経過時間更新
 void CStatusWindow::SetTimeCount(CString time)
 {
 	GetDlgItem(IDC_STATIC_TIME)->SetWindowText(time);
 }
 
-
+// 総メセタ更新
 void CStatusWindow::SetTotalMeseta(CString meseta)
 {	
 	GetDlgItem(IDC_STATIC_MPH)->SetWindowText(meseta);
 }
+
+// 総メセタ更新
 void CStatusWindow::SetTotalMeseta(long long meseta, long long mph)
 {
 	CString strMeseta = MesetaDataCtrl::MakeBigNumber(meseta);
@@ -128,7 +190,7 @@ void CStatusWindow::SetTotalMeseta(long long meseta, long long mph)
 	SetTotalMeseta(strTotal);
 }
 
-
+// ログを消去する
 void CStatusWindow::clearLog()
 {
 	GetDlgItem(IDC_STATIC_MESETA1)->SetWindowText(L"");
@@ -136,6 +198,7 @@ void CStatusWindow::clearLog()
 	GetDlgItem(IDC_STATIC_MESETA3)->SetWindowText(L"");
 }
 
+// ログを更新
 void CStatusWindow::SetLog(const std::vector <MesetaData>& mesetaData, bool change)
 {
 
@@ -160,22 +223,27 @@ void CStatusWindow::SetLog(const std::vector <MesetaData>& mesetaData, bool chan
 		CString mps = change ? MesetaDataCtrl::Time2Min(data.interval) : (MesetaDataCtrl::MakeBigNumber(data.mps)+ L"/s") ;
 		CString text;
 		text.Format(L"[%d]\n%s\n(%s)", data.idx, m.GetString(), mps.GetString());
-		if (idx >= 3)
-			break;
+		
+		// 最新３件のみ表示
+		if (idx < 3)
+		{
+			GetDlgItem(id[idx])->SetWindowText(text.GetString());
+			idx++;
+		}
 		else
-			GetDlgItem(id[idx++])->SetWindowText(text);
+			break;
 	}
 }
 
+// 情報文字列更新
 void CStatusWindow::SetInfo(CString info)
 {
 	GetDlgItem(IDC_STATIC_INFO)->SetWindowText(info);
 }
 
-
+// 最前面設定
 void CStatusWindow::setTop(bool b, int top, int left)
-{
-	
+{	
 	UINT flag = (SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	if (top < 0 || left < 0)
 	{
@@ -186,72 +254,5 @@ void CStatusWindow::setTop(bool b, int top, int left)
 		flag = (SWP_NOSIZE | SWP_SHOWWINDOW);
 	}
 
-	SetWindowPos( b ? &CStatusWindow::wndTopMost : &CStatusWindow::wndNoTopMost, left, top, 0, 0, flag);
-	
-}
-
-
-HBRUSH CStatusWindow::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
-{
-	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
-
-	// TODO: ここで DC の属性を変更してください。
-	switch (nCtlColor)
-	{
-		
-	case CTLCOLOR_STATIC:
-		pDC->SetBkMode(TRANSPARENT);
-		pDC->SetTextColor(m_fontColor);
-		return (HBRUSH)m_brDlg;
-		
-	case CTLCOLOR_DLG:
-		pDC->SetTextColor(m_fontColor);
-		return (HBRUSH)m_brDlg;
-	default:
-		break;
-	}
-
-
-	// TODO: 既定値を使用したくない場合は別のブラシを返します。
-	return hbr;
-}
-
-
-void CStatusWindow::OnDestroy()
-{
-	CDialogEx::OnDestroy();
-
-	// TODO: ここにメッセージ ハンドラー コードを追加します。
-	m_brDlg.DeleteObject();
-
-	RECT r;
-	CWinApp* pApp = AfxGetApp();
-	GetWindowRect(&r);
-	pApp->WriteProfileInt(L"DLG_POS", L"SUB_TOP", r.top);
-	pApp->WriteProfileInt(L"DLG_POS", L"SUB_LEFT", r.left);
-}
-
-
-BOOL CStatusWindow::PreTranslateMessage(MSG* pMsg)
-{
-	// TODO: ここに特定なコードを追加するか、もしくは基底クラスを呼び出してください。
-	if (WM_KEYDOWN == pMsg->message)
-	{
-
-		if (VK_RETURN == pMsg->wParam) {
-			return TRUE;
-		}
-		else if (VK_ESCAPE == pMsg->wParam) {
-			return TRUE;
-		}
-	}
-	else if (WM_SYSCOMMAND)
-	{
-		if (pMsg->wParam == SC_CLOSE)
-		{
-			return(TRUE);
-		}
-	}
-
-	return CDialogEx::PreTranslateMessage(pMsg);
+	SetWindowPos( b ? &CStatusWindow::wndTopMost : &CStatusWindow::wndNoTopMost, left, top, 0, 0, flag);	
 }

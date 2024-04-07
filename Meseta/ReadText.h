@@ -3,6 +3,7 @@
 #include <afx.h>
 #include <vector>
 
+// ファイル読み取り時の１行分のテキストデータ
 class CFileData
 {
 public:
@@ -19,11 +20,11 @@ public:
 	{
 
 	}
-	CString string;
-	ULONGLONG offset;
+	CString string; // 文字列
+	ULONGLONG offset; // ファイルポインター
 };
 
-
+// ファイルからのテキスト読み取りクラス
 class CReadText
 {
 public:
@@ -39,8 +40,7 @@ protected:
 	std::vector<CFileData> data;
 };
 
-
-
+// ログファイルからメセタを読み取り用クラス
 class CReadCurrentMesetaF : public CReadText
 {
 public:
@@ -55,8 +55,11 @@ public:
 		lastRead = L"";
 		lastPoint = 0;
 	}
+
+	// メセタ読み取り
 	long long getCurrentMeseta(CString path);
 
+	// 最後に読み取ったファイルと行を記憶する
 	CString lastRead;
 	ULONGLONG lastPoint;
 };

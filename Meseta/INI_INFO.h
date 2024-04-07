@@ -1,4 +1,4 @@
-
+// INIに保存するデータまとめ
 #pragma once
 
 #include "framework.h"
@@ -18,21 +18,19 @@ public:
 		, padUse(false)
 		, padNum(0)
 	{}
-	CString ngs_log_path;
-	BOOL pos_save;
-	BOOL disp_interval;
-	BOOL auto_refresh;
-	int refresh_second;
-	COLORREF dlgColor;
-	COLORREF fntColorN;
-	COLORREF fntColorR;
-
-	BOOL hotkeyUseDell;
-	CString hotkeyRec;
-	CString hotkeyDel;
-
-	BOOL padUse;
-	CString padRec;
-	CString padDel;
-	int padNum;
+	CString ngs_log_path; // log_ngsフォルダ
+	BOOL pos_save; // ウィンドウ位置記憶
+	BOOL disp_interval; // インターバル表示
+	BOOL auto_refresh; // 自動更新
+	int refresh_second; // 自動更新間隔
+	COLORREF dlgColor; // ダイアログ背景色
+	COLORREF fntColorN; // 文字通常カラー
+	COLORREF fntColorR; // 文字記録時カラー
+	BOOL hotkeyUseDell; // 削除キーの使用
+	CString hotkeyRec; // 記録キー
+	CString hotkeyDel; // 削除キー
+	BOOL padUse; // パッド使用
+	CString padRec; // 記録ボタン
+	CString padDel; // 削除ボタン
+	int padNum; // パッドID
 };

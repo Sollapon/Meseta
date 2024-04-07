@@ -19,28 +19,39 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV サポート
-
 	DECLARE_MESSAGE_MAP()
+
 public:
-	afx_msg void OnNcDestroy();
-	afx_msg LRESULT OnNcHitTest(CPoint point);
-	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
-	afx_msg void OnDestroy();
+	// 追加のメッセージハンドラ
 	virtual BOOL OnInitDialog();
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 
+	afx_msg void OnNcDestroy();
+	afx_msg LRESULT OnNcHitTest(CPoint point);
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	afx_msg void OnDestroy();	
+
 public:
+	// コントロールの変数
 	CBrush m_brDlg;
 	COLORREF m_fontColor;
 
+public:
+	// ステータスウィンドウ更新関数
+
+	// 背景色変更
 	void SetAlpha(BYTE alpha);
 	void SetColor(COLORREF c );
-	void SetColor(COLORREF dlgColor, COLORREF fontColor);
 	void SetColor(BYTE r, BYTE g, BYTE b) { SetColor(RGB(r,g,b)); }
 
+	// フォントカラー変更
 	void SetFontColor(COLORREF c);
 	void SetFontColor(BYTE r, BYTE g, BYTE b) { SetFontColor(RGB(r, g, b)); }
 
+	// 色変更統合
+	void SetColor(COLORREF dlgColor, COLORREF fontColor);
+
+	// 経過時間の変更
 	void SetTimeCount(CString time);
 	void SetTimeCount(int h, int m, int s) {
 		CString time;
@@ -48,13 +59,17 @@ public:
 		SetTimeCount(time);
 	}
 
+	// 総メセタ更新
 	void SetTotalMeseta(CString meseta);
 	void SetTotalMeseta(long long meseta, long long mph);
 
+	// ログの更新
 	void clearLog();
 	void SetLog(const std::vector <MesetaData>& mesetaData, bool change);
-	
-	void setTop(bool b, int top=-1, int left=-1);
 
+	// 情報テキスト更新
 	void SetInfo(CString info);
+	
+	// 最前面設定
+	void setTop(bool b, int top=-1, int left=-1);	
 };

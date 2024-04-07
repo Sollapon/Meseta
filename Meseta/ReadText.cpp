@@ -7,13 +7,12 @@ CReadText::CReadText()
 {
 }
 
-
 CReadText::~CReadText()
 {
 	data.clear();
 }
 
-
+// 文字コードをUTF-8からUTF-16に変換する
 CStringW __stdcall _Utf8ToUtf16(const char* utf8)
 {
     int nSize = ::MultiByteToWideChar(CP_UTF7, 0, utf8, -1, NULL, 0);    //変換後の文字数を調べます。
@@ -23,6 +22,7 @@ CStringW __stdcall _Utf8ToUtf16(const char* utf8)
     return strW;
 }
 
+// テキストファイルを１行ずつ読み取る（UTF-8）
 bool CReadText::ReadText(CString path)
 {
 	data.clear();
@@ -58,6 +58,7 @@ bool CReadText::ReadText(CString path)
 	return true;
 }
 
+// テキストファイルを１行ずつ読み取る（UTF-16）
 bool CReadText::ReadTextUTF16(CString path, ULONGLONG offset)
 {
     data.clear();
@@ -92,6 +93,7 @@ bool CReadText::ReadTextUTF16(CString path, ULONGLONG offset)
     return true;
 }
 
+// 読み取ったテキストの行指定で読み取る
 CString CReadText::getLine(int line)
 {
 	if (line < data.size())
@@ -100,38 +102,41 @@ CString CReadText::getLine(int line)
 	return "";
 }
 
-
+// 現在のメセタをログファイルから読み取る
 long long CReadCurrentMesetaF::getCurrentMeseta(CString path)
 {
-    
     long long total = -1;
     const CString TAG = L"CurrentN-Meseta(";
 
-
+    // 直接ファイルオープンできないので一旦コピーする
+    // ActionLogファイルが肥大してる場合システムに負荷がかかる可能性がある
+    // なにかアイデア募集中
     if (!CopyFile(path, L"log.tmp", false)) {
         return total;
     }
 
+    // 以前に読み取ったファイルと同じだった場合最後に読み取った行から再開する
     ULONGLONG seek = 0;
     if (path == lastRead)
         seek = lastPoint;
 
+    // 読み取り開始
     if (ReadTextUTF16(L"log.tmp", seek))
     {
         while (data.size() > 0)
         {
             CString text = data.back().string;
 
+            // メセタ変更ログかチェック
             int tagPoint = text.Find(TAG);
-
             if (tagPoint == -1)
             {
                 data.pop_back();
                 continue;
             }
 
+            // メセタに関係するログだった場合は読み取る
             text.Delete(0, tagPoint + CString(TAG).GetLength());
-
             int endPoint = text.Find(L")");
             text.Delete(endPoint, text.GetLength());
             text.Replace(L" ", L"");
