@@ -52,8 +52,7 @@ BOOL CPropDirectory::OnInitDialog()
 	m_edit_directory.SetWindowText(L"NGSのアクションログファイルは通常\r\n%UserProfile%\\Documents\\SEGA\r\nもしくは\r\n%OneDrive%\\ドキュメント\\SEGA\r\n以下にある\r\n\\PHANTASYSTARONLINE2\\log_ngs\r\nに保存されています。\r\nエラーが出る場合は正しいパスを指定してください。");
 
 	return TRUE;  // return TRUE unless you set the focus to a control
-	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
-	
+	// 例外 : OCX プロパティ ページは必ず FALSE を返します。	
 }
 
 void CPropDirectory::OnOK()
