@@ -101,8 +101,5 @@
     <Image Include="res\favicon.ico">
       <Filter>リソース ファイル</Filter>
     </Image>
-    <Image Include="res\setting.ico">
-      <Filter>リソース ファイル</Filter>
-    </Image>
   </ItemGroup>
 </Project>
