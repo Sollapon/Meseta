@@ -22,6 +22,7 @@ END_MESSAGE_MAP()
 // CMesetaApp の構築
 
 CMesetaApp::CMesetaApp()
+	: m_hMutex(NULL)
 {
 	// TODO: この位置に構築用コードを追加してください。
 	// ここに InitInstance 中の重要な初期化処理をすべて記述してください。
@@ -37,7 +38,6 @@ CMesetaApp theApp;
 
 BOOL CMesetaApp::InitInstance()
 {
-
 	// 多重起動を禁止する
 	m_hMutex = CreateMutex(FALSE, 0, L"Meseta.exe");
 	if (::GetLastError() == ERROR_ALREADY_EXISTS)
