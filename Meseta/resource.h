@@ -19,6 +19,7 @@
 #define IDC_STATIC_INFO                 1008
 #define IDC_EDIT_LOG_NGS                1009
 #define IDC_STATIC_TIME                 1010
+#define IDC_EDIT_SAVE_DIR               1010
 #define IDC_SLIDER1                     1013
 #define IDC_COMBO1                      1015
 #define IDC_CHECK_PRE_ST                1020
@@ -32,15 +33,16 @@
 #define IDC_HK_WIN                      1028
 #define IDC_BUTTON_LOG_NGS              1029
 #define IDC_HK_SHIFT2                   1030
+#define IDC_BUTTON_SAVE_DIR             1030
 #define IDC_CHECK_AUTO_REFRESH          1031
 #define IDC_HK_CTRL2                    1032
 #define IDC_COMBO_AUTO_REFRESH          1033
-#define IDC_PROP_CHECK_DEL_USE          1133
 #define IDC_HK_ALT2                     1034
 #define IDC_CHECK_SAVE_POS              1035
 #define IDC_HK_WIN2                     1036
 #define IDC_EDIT_DIR_HELP               1037
 #define IDC_COMBO_HOTKEY2               1038
+#define IDC_PROP_CHECK_DEL_USE          1133
 
 // Next default values for new objects
 // 

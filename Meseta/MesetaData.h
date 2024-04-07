@@ -86,7 +86,7 @@ public:
 	void endCurrentData(long long meseta);
 	MesetaData pushCurrentData();
 
-	bool writeData();
+	bool writeData(CString dir);
 
 	void pop() { mesetaData.pop_back(); }
 	bool isRunning() { return isActive; }

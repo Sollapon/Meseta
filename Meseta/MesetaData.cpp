@@ -120,13 +120,13 @@ MesetaData MesetaDataCtrl::pushCurrentData()
 }
 
 // ログデータをCSVファイルに書き出す
-bool MesetaDataCtrl::writeData()
+bool MesetaDataCtrl::writeData(CString dir)
 {
 	isActive = false;
 
 	// 現在時刻をファイル名にする
 	CTime cTime = CTime::GetCurrentTime();           // 現在時刻
-	CString fileName = cTime.Format("%Y-%m%d-%H%M%S.csv");
+	CString fileName = dir + cTime.Format("%Y-%m%d-%H%M%S.csv");
 	FILE* fp;
 	_wfopen_s(&fp, fileName, _T("w, ccs=UTF-8"));
 	CStdioFile file(fp);

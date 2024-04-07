@@ -33,4 +33,5 @@ public:
 	CString padRec; // 記録ボタン
 	CString padDel; // 削除ボタン
 	int padNum; // パッドID
+	CString saveDirectory; // 保存フォルダ
 };

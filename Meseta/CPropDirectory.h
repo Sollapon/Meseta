@@ -35,9 +35,12 @@ public:
 	virtual void OnOK();
 	afx_msg void OnEnChangeEditLogNgs();
 	afx_msg void OnBnClickedButtonLogNgs();
+	afx_msg void OnBnClickedButtonSaveDir();
+	afx_msg void OnEnChangeEditSaveDir();
 
 public:
 	// コントロール変数
 	CEdit m_edit_log_ngs;
 	CEdit m_edit_directory;
+	CEdit m_edit_save_dir;	
 };

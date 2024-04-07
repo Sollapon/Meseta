@@ -202,7 +202,7 @@ bool CMesetaDlg::checkIniFile()
 	if (find.FindFile(filePath))
 	{ 
 		CWinApp* pApp = AfxGetApp();
-		CString path = pApp->GetProfileString(L"LOG_DIR", L"MGS_LOG", L"TEST");
+		CString path = pApp->GetProfileString(L"LOG_DIR", L"NGS_LOG", L"TEST");
 
 		//　ファイルが存在してても中身が空の場合は読み取れない
 		if (path == L"TEST")
@@ -239,7 +239,7 @@ bool CMesetaDlg::checkIniFile()
 			RegCloseKey(hKye);
 
 			// ngs_logファイルがあると思われる場所
-			path = CString(L"MGS_LOG=") + CString(lpData) + CString(DEFAULT_NGS_LOG) + CString(L"\n");
+			path = CString(L"NGS_LOG=") + CString(lpData) + CString(DEFAULT_NGS_LOG) + CString(L"\n");
 		}
 
 		file.WriteString(L"[LOG_DIR]\n");
@@ -254,7 +254,7 @@ BOOL CMesetaDlg::readINI()
 {
 	// NGS_LOGフォルダへのパスを読み込み
 	CWinApp* pApp = AfxGetApp();
-	iniData.ngs_log_path = pApp->GetProfileString(L"LOG_DIR", L"MGS_LOG", CString(DEFAULT_DOC)+CString(DEFAULT_NGS_LOG));
+	iniData.ngs_log_path = pApp->GetProfileString(L"LOG_DIR", L"NGS_LOG", CString(DEFAULT_DOC)+CString(DEFAULT_NGS_LOG));
 
 	// 正しいフォルダが設定されてるかチェックする
 	BOOL ret = mesetaCtrl.Init(iniData.ngs_log_path);
@@ -263,6 +263,15 @@ BOOL CMesetaDlg::readINI()
 	{
 		MessageBox(L"NGSログファイルが読み取れません。\n設定から正しいフォルダを指定してください。", L"エラー");
 	}
+
+	// セーブフォルダ
+	TCHAR path[_MAX_PATH + 1];
+	TCHAR drive[_MAX_PATH + 1];
+	GetModuleFileName(NULL, path, _MAX_PATH);
+	CString modulePath(path);
+	_wsplitpath_s(modulePath.GetBuffer(), drive, _MAX_PATH, path, _MAX_PATH, NULL, NULL, NULL, NULL);
+	modulePath = CString(drive) + CString(path);
+	iniData.saveDirectory = pApp->GetProfileString(L"LOG_DIR", L"SAVE_LOG", modulePath.GetString());
 	
 	// ダイアログの初期位置
 	CString ini;
@@ -363,7 +372,10 @@ BOOL CMesetaDlg::writeINI()
 	pApp->WriteProfileInt(L"DLG_POS", L"LEFT", r.left);
 
 	// ログのパス
-	pApp->WriteProfileString(L"LOG_DIR", L"MGS_LOG", iniData.ngs_log_path);
+	pApp->WriteProfileString(L"LOG_DIR", L"NGS_LOG", iniData.ngs_log_path);
+
+	// セーブフォルダ
+	pApp->WriteProfileString(L"LOG_DIR", L"SAVE_LOG", iniData.saveDirectory);
 
 	// ウィンドウ位置の保存
 	pApp->WriteProfileString(L"DLG_POS", L"SAVE", iniData.pos_save?L"TRUE":L"FALSE");
@@ -917,7 +929,7 @@ void CMesetaDlg::OnBnClickedButtonEnd()
 		}		
 
 		// 記録をCSVファイルに書き出す
-		mesetaCtrl.writeData();
+		mesetaCtrl.writeData(iniData.saveDirectory);
 
 		// タイマーが起動中なら殺す
 		if (m_timerID != 0)
