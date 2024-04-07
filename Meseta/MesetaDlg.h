@@ -1,16 +1,12 @@
 ﻿
 // MesetaDlg.h : ヘッダー ファイル
 //
-
 #pragma once
-
 
 #include "CStatusWindow.h"
 #include "MesetaData.h"
 #include "INI_INFO.h"
 #include "PAD_INFO.h"
-
-
 
 
 // CMesetaDlg ダイアログ
@@ -86,6 +82,7 @@ public:
 	INI_FILE iniData;
 	
 public:
+	// 独自追加関数
 	bool SetHotkey();
 	bool DeleteHotkey();
 	void clearStatusWindow();	
@@ -96,6 +93,7 @@ public:
 	void finishRecData(long long currentMeseta);
 	
 public:
+	// ユーティリティ
 	static COLORREF Str2Col(CString col);
 	static CString Col2Str(COLORREF col);
 	static bool Str2VK(CString key, UINT& mod, UINT& vk);

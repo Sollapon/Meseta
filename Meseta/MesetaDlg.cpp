@@ -4,28 +4,27 @@
 
 //#include "pch.h"
 #include "framework.h"
+#include "afxdialogex.h"
+
 #include "Meseta.h"
 #include "MesetaDlg.h"
-#include "afxdialogex.h"
 
 #include "CPropHotkey.h"
 #include "CPropDirectory.h"
 #include "CPropFunction.h"
 
+#include "EnumFile.h"
 
 // Xinputライブラリ
 #pragma comment(lib, "xinput9_1_0.lib")
-
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 // NGSディレクトリ初期設定
-#include "EnumFile.h"
 #define DEFAULT_DOC L"%UserProfile%\\Documents"
 #define DEFAULT_NGS_LOG L"\\SEGA\\PHANTASYSTARONLINE2\\log_ngs\\"
-
 
 
 // CMesetaDlg ダイアログ
@@ -353,90 +352,6 @@ BOOL CMesetaDlg::readINI()
 	return ret;
 }
 
-// INI読み取りユーティリティ
-// 文字列のカラーコードをCOLORREFに変換
-COLORREF CMesetaDlg::Str2Col(CString col)
-{
-	COLORREF c = 0;
-	if (col.GetLength() == 6)
-	{
-		CString r = col.Left(2);
-		col.Delete(0, 2);
-		CString g = col.Left(2);
-		col.Delete(0, 2);
-		CString b = col.Left(2);
-		col.Delete(0, 2);
-
-		c = RGB( wcstol(r, NULL, 16), wcstol(g, NULL, 16), wcstol(b, NULL, 16));
-	}
-	return c;
-}
-
-// INI読み取りユーティリティ
-// COLORREFを文字列のカラーコードに変換
-CString CMesetaDlg::Col2Str(COLORREF col)
-{
-	WORD r = col & 0xFF;
-	WORD g = (col & 0xFF00) >> 8;
-	WORD b = (col & 0xFF0000) >> 16;
-
-	CString c;
-	c.Format(L"%02X%02X%02X", r, g, b);
-
-	return c;
-}
-
-// INI読み取りユーティリティ
-// ホットキーの文字列をフラグに変換する
-bool CMesetaDlg::Str2VK(CString key, UINT& mod, UINT& vk)
-{
-	key.Replace(L" ", L"");
-
-	CString VK;
-	std::vector<CString> MOD;
-	for (;;)
-	{
-		int pos = key.Find(L"+");
-		if (pos < 0)
-		{
-			VK = key.Left(1);
-			break;
-		}
-		MOD.push_back(key.Left(pos));
-		key.Delete(0, pos + 1);
-	}
-
-	if (MOD.size() == 0 || VK.GetLength()==0)
-		return false;
-
-	mod = 0;
-	for (size_t i = 0; i < MOD.size(); i++)
-	{
-		MOD[i].MakeUpper();
-		if (MOD[i].CompareNoCase(L"ALT")==0)
-		{
-			mod |= MOD_ALT;
-		}
-		else if (MOD[i].CompareNoCase(L"CTRL")==0)
-		{
-			mod |= MOD_CONTROL;
-		}
-		else if (MOD[i].CompareNoCase(L"SHIFT") == 0)
-		{
-			mod |= MOD_SHIFT;
-		}
-		else if (MOD[i].CompareNoCase(L"WIN") == 0)
-		{
-			mod |= MOD_WIN;
-		}
-	}
-
-	vk = (UINT)VK.GetBuffer()[0];
-
-	return true;
-}
-
-
 // INIファイルの書き込み
 BOOL CMesetaDlg::writeINI()
 {
@@ -494,6 +409,109 @@ BOOL CMesetaDlg::writeINI()
 	return true;
 }
 
+// 初期化処理
+// bool run : 起動有りならture、起動無しならfalse
+void CMesetaDlg::Init(bool run)
+{
+	// データ管理クラスを初期化
+	bool ret = mesetaCtrl.Init(iniData.ngs_log_path, run);
+
+	// リストコントロール初期化
+	m_listCtrl.DeleteAllItems();
+
+	// サブウィンドウ初期化
+	clearStatusWindow();
+
+	// 起動有
+	if (run)
+	{
+		// 経過時間タイマー始動
+		if (m_timerID == 0)
+		{
+			m_timerID = 1;
+			SetTimer(m_timerID, 1000, NULL);
+		}
+
+		// ゲームパッドの読み取り開始
+		if (iniData.padUse && m_padTimerID == 0)
+		{
+			m_padTimerID = 105;
+			SetTimer(m_padTimerID, 16, NULL);
+		}
+
+		// ステータスウィンドウ更新
+		CString info;
+		info.Format(L"%s\n%s", L"記録開始", iniData.hotkeyRec.GetString());
+		m_statusWindow->SetInfo(info);
+	}
+	else
+	{
+		// 起動無しの場合
+		// アプリ起動時と設定ボタンを押したとき
+		m_statusWindow->SetInfo(L"スタートで起動");
+	}
+}
+
+// 記録終了時の一括処理
+// currentMeseta=-1 : ログに追加せずに強制終了
+void CMesetaDlg::finishRecData(long long currentMeseta)
+{
+	// 最終結果取得
+	mesetaCtrl.endCurrentData(currentMeseta);
+
+	// 正常終了処理の場合はログに追加
+	if (currentMeseta >= 0)
+	{
+		// 計測結果をログのリストに積む
+		MesetaData md = mesetaCtrl.currentMeseta;
+		md.idx = (int)mesetaCtrl.mesetaData.size() + 1;
+		long long lastTime = (mesetaCtrl.mesetaData.size() > 0) ? mesetaCtrl.mesetaData.back().end.GetTime() : mesetaCtrl.initialTime.GetTime();
+		md.interval = md.start.GetTime() - lastTime;
+		mesetaCtrl.mesetaData.push_back(md);
+
+		// リストコントロールに追加
+		CString addText;
+		addText.Format(L"%d", md.idx);
+		m_listCtrl.InsertItem(0, addText);
+
+		addText = MesetaDataCtrl::MakeBigNumber(md.meseta);
+		m_listCtrl.SetItemText(0, 1, addText);
+
+		addText = md.start.Format(L"%m/%d %H:%M:%S");
+		m_listCtrl.SetItemText(0, 2, addText);
+
+		addText.Format(L"%lld秒", md.recTime);
+		m_listCtrl.SetItemText(0, 3, addText);
+
+		addText = MesetaDataCtrl::MakeBigNumber(md.mps);
+		addText += L"/s";
+		m_listCtrl.SetItemText(0, 4, addText);
+
+		m_listCtrl.SetItemText(0, 5, MesetaDataCtrl::Time2Min(md.interval));
+	}
+
+	// 自動終了処理の変更を有効化
+	m_check_use_auto_finish.EnableWindow(true);
+	if (m_check_use_auto_finish.GetCheck())
+		m_auto_finish_count.EnableWindow(true);
+
+	// ステータスウィンドウ更新
+	CTime now = CTime::GetCurrentTime();
+	m_statusWindow->SetTimeCount(mesetaCtrl.getElapsedTime(now));
+	m_statusWindow->SetColor(iniData.dlgColor, iniData.fntColorN);
+	m_statusWindow->SetTotalMeseta(mesetaCtrl.increasedMeseta, mesetaCtrl.mesetaPerHour);
+	m_statusWindow->SetLog(mesetaCtrl.mesetaData, iniData.disp_interval);
+	CString info;
+	info.Format(L"%s\n%s", L"記録開始", iniData.hotkeyRec.GetString());
+	m_statusWindow->SetInfo(info);
+
+	// 自動終了のタイマーが動いてたら殺す
+	if (m_autoFinishTimerID != 0)
+	{
+		KillTimer(m_autoFinishTimerID);
+		m_autoFinishTimerID = 0;
+	}
+}
 
 // ダイアログに最小化ボタンを追加する場合、アイコンを描画するための
 //  下のコードが必要です。ドキュメント/ビュー モデルを使う MFC アプリケーションの場合、
@@ -530,7 +548,6 @@ HCURSOR CMesetaDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
 // メッセージ処理のオーバーライド
 BOOL CMesetaDlg::PreTranslateMessage(MSG* pMsg)
 {
@@ -548,114 +565,59 @@ BOOL CMesetaDlg::PreTranslateMessage(MSG* pMsg)
 	return CDialogEx::PreTranslateMessage(pMsg);
 }
 
-// 記録終了時の一括処理
-// currentMeseta=-1 : ログに追加せずに強制終了
-void CMesetaDlg::finishRecData(long long currentMeseta)
-{
-	// 最終結果取得
-	mesetaCtrl.endCurrentData(currentMeseta);
-
-	// 正常終了処理の場合はログに追加
-	if (currentMeseta >= 0)
-	{
-		// 計測結果をログのリストに積む
-		MesetaData md = mesetaCtrl.currentMeseta;
-		md.idx = (int)mesetaCtrl.mesetaData.size() + 1;
-		long long lastTime = (mesetaCtrl.mesetaData.size() > 0) ? mesetaCtrl.mesetaData.back().end.GetTime() : mesetaCtrl.initialTime.GetTime();
-		md.interval = md.start.GetTime() - lastTime;		
-		mesetaCtrl.mesetaData.push_back(md);
-
-		// リストコントロールに追加
-		CString addText;
-		addText.Format(L"%d", md.idx);
-		m_listCtrl.InsertItem(0, addText);
-
-		addText = MesetaDataCtrl::MakeBigNumber(md.meseta);
-		m_listCtrl.SetItemText(0, 1, addText);
-
-		addText = md.start.Format(L"%m/%d %H:%M:%S");
-		m_listCtrl.SetItemText(0, 2, addText);
-
-		addText.Format(L"%lld秒", md.recTime);
-		m_listCtrl.SetItemText(0, 3, addText);
-
-		addText = MesetaDataCtrl::MakeBigNumber(md.mps);
-		addText += L"/s";
-		m_listCtrl.SetItemText(0, 4, addText);		
-		
-		m_listCtrl.SetItemText(0, 5, MesetaDataCtrl::Time2Min(md.interval));
-	}	
-
-	// 自動終了処理の変更を有効化
-	m_check_use_auto_finish.EnableWindow(true);
-	if (m_check_use_auto_finish.GetCheck())
-		m_auto_finish_count.EnableWindow(true);
-
-	// ステータスウィンドウ更新
-	CTime now = CTime::GetCurrentTime();
-	m_statusWindow->SetTimeCount(mesetaCtrl.getElapsedTime(now));
-	m_statusWindow->SetColor(iniData.dlgColor, iniData.fntColorN);
-	m_statusWindow->SetTotalMeseta(mesetaCtrl.increasedMeseta, mesetaCtrl.mesetaPerHour);
-	m_statusWindow->SetLog(mesetaCtrl.mesetaData, iniData.disp_interval);
-	CString info;
-	info.Format(L"%s\n%s", L"記録開始", iniData.hotkeyRec.GetString());
-	m_statusWindow->SetInfo(info);
-
-	// 自動終了のタイマーが動いてたら殺す
-	if (m_autoFinishTimerID != 0)
-	{
-		KillTimer(m_autoFinishTimerID);
-		m_autoFinishTimerID = 0;
-	}	
-}
-
-
+// ホットキーの処理
 void CMesetaDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2)
 {
-	// TODO: ここにメッセージ ハンドラー コードを追加するか、既定の処理を呼び出します。
-
+	// 起動中以外は無効化
 	if (!mesetaCtrl.isRunning())
 	{
 	}
+	// 記録キー
 	else if (nHotKeyId == 100)
 	{
+		// 現在のデータを取得
 		long long currentMeseta = mesetaCtrl.getCurrentMeseta();
 
+		// 取得に成功
 		if (currentMeseta >= 0)
 		{
+			// 記録中なら終了
 			if (mesetaCtrl.currentMeseta.isRun)
 			{
 				if (!m_check_use_auto_finish.GetCheck())
 					finishRecData(currentMeseta);
 			}
+			// 記録開始
 			else
 			{
+				// 記録中は保険で自動終了の設定を変更不可にする
 				bool auto_finish = m_check_use_auto_finish.GetCheck();
 				int auto_finish_count = 0;
 
+				// 自動終了設定時にカウントを読み取る
 				if (auto_finish)
 				{
 					CString ini;
 					m_auto_finish_count.GetWindowText(ini);
 					auto_finish_count = _ttoi(ini);
+					// 不正な値を入れられたら強制１秒
 					if (auto_finish_count == 0)
 					{
 						auto_finish_count = 1;
 						m_auto_finish_count.SetWindowText(L"1");
 					}
 				}
-
-				// 計測開始
-				mesetaCtrl.setCurrentData(currentMeseta, auto_finish_count);
-
 				m_check_use_auto_finish.EnableWindow(false);
 				if (m_check_use_auto_finish.GetCheck())
 					m_auto_finish_count.EnableWindow(false);
 
+				// 計測開始
+				mesetaCtrl.setCurrentData(currentMeseta, auto_finish_count);				
+
+				// ステータスウィンドウリフレッシュ
 				m_statusWindow->SetColor(iniData.dlgColor, iniData.fntColorR);
 
-
-				// タイマー始動
+				// タイマーあり開始
 				if (m_autoFinishTimerID == 0 && m_check_use_auto_finish.GetCheck())
 				{
 					m_autoFinishTimerID = 80;
@@ -664,9 +626,9 @@ void CMesetaDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2)
 					CString info;
 					info.Format(L"%s\n(%03d)", L"記録中", auto_finish_count);
 					m_statusWindow->SetInfo(info);
-
 					
 				}
+				// タイマーなし開始
 				else
 				{
 					CString info;
@@ -675,18 +637,24 @@ void CMesetaDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2)
 				}
 			}
 		}
+		// データ取得に失敗
+		// ログディレクトリの指定が不正な状態でスタートを押した？
 		else
 		{
+			// 保険
 			MessageBox(L"NGSログファイルが読み取れません。\n設定から正しいフォルダを指定してください。", L"エラー");
 		}
 	}
+	// 削除キー
 	else if (nHotKeyId == 101 )
 	{
+		// 記録中ならデータを破棄して終了
 		if (mesetaCtrl.currentMeseta.isRun)
 		{
 			mesetaCtrl.getCurrentMeseta();
 			finishRecData(-1);
 		}
+		// 待機中ならログを上から順に削除
 		else if (m_listCtrl.GetItemCount() > 0)
 		{
 			// 最新データの取り消し
@@ -699,12 +667,13 @@ void CMesetaDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2)
 	CDialogEx::OnHotKey(nHotKeyId, nKey1, nKey2);
 }
 
-
+// ダイアログの終了処理
 void CMesetaDlg::OnDestroy()
 {
 	// ホットキーの削除
 	DeleteHotkey();
 
+	// タイマーが動いてたら全部殺す
 	if (m_timerID != 0)
 		KillTimer(m_timerID);
 
@@ -714,20 +683,15 @@ void CMesetaDlg::OnDestroy()
 	if (m_padTimerID != 0)
 		KillTimer(m_padTimerID);
 
-
-	// ウィンドウの位置を記録
+	// INIファイルに設定をすべて保存
 	writeINI();
-
 	
 	CDialogEx::OnDestroy();
-
-	// TODO: ここにメッセージ ハンドラー コードを追加します。
 }
 
-
+// WM_CLOSEをインターラプトして終了確認
 void CMesetaDlg::OnClose()
 {
-	// TODO: ここにメッセージ ハンドラー コードを追加するか、既定の処理を呼び出します。
 #ifndef _DEBUG
 	if (IDOK == MessageBox(L"本当に終了しますか？", L"確認", MB_OKCANCEL))
 #endif
@@ -736,7 +700,7 @@ void CMesetaDlg::OnClose()
 	}
 }
 
-
+// リストコントロールのカスタムドロー
 void CMesetaDlg::OnCustomdrawList1(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	CString strText;
@@ -744,7 +708,6 @@ void CMesetaDlg::OnCustomdrawList1(NMHDR* pNMHDR, LRESULT* pResult)
 	int col = 0;
 
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
 	if (pNMHDR)
 	{
 		LPNMLVCUSTOMDRAW pLVCD = (LPNMLVCUSTOMDRAW)pNMHDR;
@@ -760,8 +723,7 @@ void CMesetaDlg::OnCustomdrawList1(NMHDR* pNMHDR, LRESULT* pResult)
 		case (CDDS_SUBITEM | CDDS_ITEMPREPAINT):
 			row = (int)pLVCD->nmcd.dwItemSpec;
 			col = pLVCD->iSubItem;
-
-			// 性別によって、リストの背景色を変える
+			// 行数によって、リストの背景色を変える
 			strText = m_listCtrl.GetItemText(row, 0);
 			if (_ttoi(strText) % 2 == 0)
 			{
@@ -782,19 +744,20 @@ void CMesetaDlg::OnCustomdrawList1(NMHDR* pNMHDR, LRESULT* pResult)
 	}
 }
 
-
+// タイマー処理
 void CMesetaDlg::OnTimer(UINT_PTR nIDEvent)
 {
-	// TODO: ここにメッセージ ハンドラー コードを追加するか、既定の処理を呼び出します。
-
+	// 実行中以外は処理しない
+	// （実行中以外はタイマーは動いてないはずなので保険程度）
 	if (mesetaCtrl.isRunning())
 	{
+		// 経過時間タイマー
 		if (nIDEvent == m_timerID )
 		{
 			CTime now = CTime::GetCurrentTime();
 			m_statusWindow->SetTimeCount(mesetaCtrl.getElapsedTime(now));
 
-			// 自動更新
+			// 自動更新設定ONなら自動更新
 			if (iniData.auto_refresh)
 			{
 				if (mesetaCtrl.elapsedTime % iniData.refresh_second == 0)
@@ -804,25 +767,29 @@ void CMesetaDlg::OnTimer(UINT_PTR nIDEvent)
 				}
 			}			
 		}		
+		// 自動終了タイマー
 		else if (nIDEvent == m_autoFinishTimerID)
 		{
+			// カウントダウン更新
 			CurrentMesetaData& data = mesetaCtrl.currentMeseta;
 			data.auto_count--;
 			CString info;
 			info.Format(L"%s\n(%03d)", L"記録中", data.auto_count);
 			m_statusWindow->SetInfo(info);
 
+			// カウントダウン終了
 			if (data.auto_count == 0)
 			{
 				long long currentMeseta = mesetaCtrl.getCurrentMeseta();
 				finishRecData(currentMeseta);
 			}
 		}
+		// ゲームパッド情報読み取りタイマー
 		else if (nIDEvent == m_padTimerID)
 		{
 			//if (iniData.padUse)
 			{
-
+				// パッド情報を読み取りホットキーの動作を代行する
 				XINPUT_STATE state;
 				if ( XInputGetState(iniData.padNum, &state) == ERROR_SUCCESS )
 				{
@@ -837,7 +804,6 @@ void CMesetaDlg::OnTimer(UINT_PTR nIDEvent)
 							OnHotKey(101, 0, 0);
 						}
 					}
-
 					padInfo.padBit = state.Gamepad.wButtons;
 				}				
 			}
@@ -850,7 +816,7 @@ void CMesetaDlg::OnTimer(UINT_PTR nIDEvent)
 // ステータスウィンドウ最前面
 void CMesetaDlg::OnBnClickedCheckPreSt()
 {
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+	// チェックボックス読み取りと反映
 	bool check = m_check_pre_status.GetCheck();
 	m_statusWindow->setTop(check);
 }
@@ -858,8 +824,7 @@ void CMesetaDlg::OnBnClickedCheckPreSt()
 // 全てのウィンドウを最前面
 void CMesetaDlg::OnBnClickedCheckPreLog()
 {
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-
+	// チェックボックス読み取りと反映
 	RECT r;
 	GetWindowRect(&r);
 
@@ -882,18 +847,16 @@ void CMesetaDlg::OnBnClickedCheckPreLog()
 
 // ログウィンドウも透明化
 void CMesetaDlg::OnBnClickedCheckTraLog()
-{
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-	
+{	
+	// チェックボックス読み取りと反映
 	int alpha = m_check_trans_log.GetCheck() ? m_window_alpha.GetPos() : 255;
 	SetLayeredWindowAttributes(0, alpha, LWA_ALPHA);
-
 }
 
-
+// 透明度設定
 void CMesetaDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
-	// TODO: ここにメッセージ ハンドラー コードを追加するか、既定の処理を呼び出します。
+	// スライダーバーからα値を設定する
 	if ((CSliderCtrl*)pScrollBar == &m_window_alpha)
 	{
 		int alpha = m_window_alpha.GetPos();
@@ -905,10 +868,10 @@ void CMesetaDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	CDialogEx::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 
-
+// 自動終了設定
 void CMesetaDlg::OnBnClickedCheckAuto()
 {
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+	// チェックボックス読み取りと反映
 	bool check = m_check_use_auto_finish.GetCheck();
 	if (check)
 	{
@@ -916,48 +879,15 @@ void CMesetaDlg::OnBnClickedCheckAuto()
 	}
 	else
 	{
-		m_auto_finish_count.EnableWindow(false);
+		// 自動設定オフならカウントの設定を無効化する
+		m_auto_finish_count.EnableWindow(false); 
 	}
 }
 
-void CMesetaDlg::Init(bool run)
-{
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-	bool ret = mesetaCtrl.Init(iniData.ngs_log_path, run);
-
-	m_listCtrl.DeleteAllItems();
-
-	// サブウィンドウ初期化
-	clearStatusWindow();
-
-	if (run)
-	{
-		// タイマー始動
-		if (m_timerID == 0)
-		{
-			m_timerID = 1;
-			SetTimer(m_timerID, 1000, NULL);
-		}
-
-		if (iniData.padUse && m_padTimerID == 0)
-		{
-			m_padTimerID = 105;
-			SetTimer(m_padTimerID, 16, NULL);
-		}
-
-		CString info;
-		info.Format(L"%s\n%s", L"記録開始", iniData.hotkeyRec.GetString());
-		m_statusWindow->SetInfo(info);
-	}
-	else
-	{
-		m_statusWindow->SetInfo(L"スタートで起動");
-	}
-}
-
-
+// スタートボタン
 void CMesetaDlg::OnBnClickedButtonStart()
 {
+	// ログが残ってる場合は確認する
 	if (m_listCtrl.GetItemCount() > 0)
 	{
 		if (IDCANCEL == MessageBox(L"データは全てはリセットされます。", L"確認", MB_OKCANCEL))
@@ -966,56 +896,61 @@ void CMesetaDlg::OnBnClickedButtonStart()
 		}
 	}
 
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-	Init(true);
+	// 起動処理
+	Init(true);	
+
+	// 起動中は終了ボタン以外無効化する
 	m_buttonStart.EnableWindow(false);
 	m_buttonStart.SetWindowText(L"起動中");
 	m_buttonEnd.EnableWindow(true);
 	m_buttonConfig.EnableWindow(false);
 }
 
+// 終了ボタン
 void CMesetaDlg::OnBnClickedButtonEnd()
 {
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+	// 起動中以外は押されないはずだが
 	if (mesetaCtrl.isRunning())
 	{
 		// 最終結果
 		mesetaCtrl.getCurrentMeseta();
 				
+		// 記録中に終了ボタンが押されたらデータ破棄
 		if (mesetaCtrl.currentMeseta.isRun)
 		{			
 			finishRecData(-1);
 		}		
 
+		// 記録をCSVファイルに書き出す
 		mesetaCtrl.writeData();
 
+		// タイマーが起動中なら殺す
 		if (m_timerID != 0)
 		{
 			KillTimer(m_timerID);
 			m_timerID = 0;
 		}
-
 		if (m_padTimerID != 0)
 		{
 			KillTimer(m_padTimerID);
 			m_padTimerID = 0;
 		}
-				
+		
+		// スタートボタンと設定ボタンを有効化する
 		m_buttonStart.EnableWindow(true);
 		m_buttonStart.SetWindowText(L"スタート");
-		m_buttonEnd.EnableWindow(false);
+		m_buttonEnd.EnableWindow(false); // 終了ボタンは無効
 		m_buttonConfig.EnableWindow(true);
 
-
+		// ステータスウィンドウ更新
 		m_statusWindow->SetInfo(L"保存完了\nスタートでリセット");
 	}
 }
 
-
+// 設定ボタン
 void CMesetaDlg::OnBnClickedButtonConfig()
 {
-	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+	// ログが残ってる場合は確認する
 	if (m_listCtrl.GetItemCount() > 0)
 	{
 		if (IDCANCEL == MessageBox(L"データは全てはリセットされます。", L"確認", MB_OKCANCEL))
@@ -1024,21 +959,108 @@ void CMesetaDlg::OnBnClickedButtonConfig()
 		}
 	}
 
+	// 初期化
 	Init(false);
 
+	// プロパティシート作成
 	CPropertySheet PropSheet(_T("設定"));
 	PropSheet.m_psh.dwFlags &= ~(PSH_HASHELP);
 
+	// プロパティページ作成
 	CPropHotkey propHotkey(this);
 	CPropDirectory propDirectory(this);
 	CPropFunction propFunctiuon(this);
 
+	// シートにページを追加
 	PropSheet.AddPage(&propFunctiuon);
 	PropSheet.AddPage(&propHotkey);
 	PropSheet.AddPage(&propDirectory);
 	
-
+	// 設定ダイアログをモーダルで実行
 	if (PropSheet.DoModal() == IDOK)
 	{
 	}
+}
+
+// INI読み取りユーティリティ
+// 文字列のカラーコードをCOLORREFに変換
+COLORREF CMesetaDlg::Str2Col(CString col)
+{
+	COLORREF c = 0;
+	if (col.GetLength() == 6)
+	{
+		CString r = col.Left(2);
+		col.Delete(0, 2);
+		CString g = col.Left(2);
+		col.Delete(0, 2);
+		CString b = col.Left(2);
+		col.Delete(0, 2);
+
+		c = RGB(wcstol(r, NULL, 16), wcstol(g, NULL, 16), wcstol(b, NULL, 16));
+	}
+	return c;
+}
+
+// INI読み取りユーティリティ
+// COLORREFを文字列のカラーコードに変換
+CString CMesetaDlg::Col2Str(COLORREF col)
+{
+	WORD r = col & 0xFF;
+	WORD g = (col & 0xFF00) >> 8;
+	WORD b = (col & 0xFF0000) >> 16;
+
+	CString c;
+	c.Format(L"%02X%02X%02X", r, g, b);
+
+	return c;
+}
+
+// INI読み取りユーティリティ
+// ホットキーの文字列をフラグに変換する
+bool CMesetaDlg::Str2VK(CString key, UINT& mod, UINT& vk)
+{
+	key.Replace(L" ", L"");
+
+	CString VK;
+	std::vector<CString> MOD;
+	for (;;)
+	{
+		int pos = key.Find(L"+");
+		if (pos < 0)
+		{
+			VK = key.Left(1);
+			break;
+		}
+		MOD.push_back(key.Left(pos));
+		key.Delete(0, pos + 1);
+	}
+
+	if (MOD.size() == 0 || VK.GetLength() == 0)
+		return false;
+
+	mod = 0;
+	for (size_t i = 0; i < MOD.size(); i++)
+	{
+		MOD[i].MakeUpper();
+		if (MOD[i].CompareNoCase(L"ALT") == 0)
+		{
+			mod |= MOD_ALT;
+		}
+		else if (MOD[i].CompareNoCase(L"CTRL") == 0)
+		{
+			mod |= MOD_CONTROL;
+		}
+		else if (MOD[i].CompareNoCase(L"SHIFT") == 0)
+		{
+			mod |= MOD_SHIFT;
+		}
+		else if (MOD[i].CompareNoCase(L"WIN") == 0)
+		{
+			mod |= MOD_WIN;
+		}
+	}
+
+	vk = (UINT)VK.GetBuffer()[0];
+
+	return true;
 }
