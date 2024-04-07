@@ -462,11 +462,7 @@ void CMesetaDlg::finishRecData(long long currentMeseta)
 	if (currentMeseta >= 0)
 	{
 		// 計測結果をログのリストに積む
-		MesetaData md = mesetaCtrl.currentMeseta;
-		md.idx = (int)mesetaCtrl.mesetaData.size() + 1;
-		long long lastTime = (mesetaCtrl.mesetaData.size() > 0) ? mesetaCtrl.mesetaData.back().end.GetTime() : mesetaCtrl.initialTime.GetTime();
-		md.interval = md.start.GetTime() - lastTime;
-		mesetaCtrl.mesetaData.push_back(md);
+		MesetaData md = mesetaCtrl.pushCurrentData();
 
 		// リストコントロールに追加
 		CString addText;

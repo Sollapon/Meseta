@@ -11,9 +11,7 @@ MesetaDataCtrl::MesetaDataCtrl()
 	, mesetaPerHour(0)
 	, elapsedTime(0)
 	, isActive(false)
-{
-
-}
+{}
 
 // リセット（実行終了)
 void MesetaDataCtrl::clear()
@@ -64,7 +62,7 @@ long long MesetaDataCtrl::getCurrentMeseta(bool init)
 {
 	long long m = -1;
 
-	// 列挙済みログファイルを最新順に操作する
+	// 列挙済みログファイルを最新順に走査する
 	for (size_t i = 0; i < enumFile.getSize(); i++)
 	{
 		CString file = enumFile.getFile(i);
@@ -87,7 +85,7 @@ long long MesetaDataCtrl::getCurrentMeseta(bool init)
 	return m;
 }
 
-// 記録データを開始値をセット
+// 記録データの開始値
 void MesetaDataCtrl::setCurrentData(long long meseta, int auto_count)
 {
 	currentMeseta.clear();
@@ -107,6 +105,18 @@ void MesetaDataCtrl::endCurrentData(long long meseta)
 	currentMeseta.calcMPS();
 	currentMeseta.isRun = false;
 	currentMeseta.auto_count = 0;
+}
+
+// 現在の記録データをログリストに積む
+MesetaData MesetaDataCtrl::pushCurrentData()
+{
+	MesetaData md = currentMeseta;
+	md.idx = (int)mesetaData.size() + 1;
+	long long lastTime = (mesetaData.size() > 0) ? mesetaData.back().end.GetTime() : initialTime.GetTime();
+	md.interval = md.start.GetTime() - lastTime;
+	mesetaData.push_back(md);
+
+	return md;
 }
 
 // ログデータをCSVファイルに書き出す
@@ -158,10 +168,9 @@ bool MesetaDataCtrl::writeData()
 	return true;
 }
 
-
+// 経過時間の計算と文字列変換
 CString MesetaDataCtrl::getElapsedTime(CTime t)
 {
 	elapsedTime = t.GetTime() - initialTime.GetTime();
 	return (t-initialTime).Format(L"%H:%M:%S");
 }
-

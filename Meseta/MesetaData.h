@@ -84,6 +84,7 @@ public:
 	long long getCurrentMeseta(bool init=false);
 	void setCurrentData(long long meseta, int auto_count = 0);
 	void endCurrentData(long long meseta);
+	MesetaData pushCurrentData();
 
 	bool writeData();
 
