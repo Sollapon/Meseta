@@ -101,10 +101,6 @@ BOOL CMesetaDlg::OnInitDialog()
 	ModifyStyleEx(0, WS_EX_LAYERED);
 	// レイヤードウィンドウの不透明度と透明のカラーキー
 	SetLayeredWindowAttributes(0, 255, LWA_ALPHA);	
-
-	// サブウィンドウ作成
-	m_statusWindow = new CStatusWindow(this);
-	m_statusWindow->Create(IDD_FORMVIEW, this);
 	
 	// ステータスウィンドウ初期化
 	clearStatusWindow();
@@ -115,9 +111,9 @@ BOOL CMesetaDlg::OnInitDialog()
 	// INIファイルの読み込み
 	readINI();
 
-	// サブカラー設定	
+	// サブウィンドウ作成	
 	// INIの設定を読み込んだ後に
-	m_statusWindow->SetColor(iniData.dlgColor, iniData.fntColorN);
+	openStatusWindow();
 
 	// ホットキー設定
 	// INIの設定を読み込んだ後に
@@ -187,6 +183,35 @@ void CMesetaDlg::clearStatusWindow()
 		m_statusWindow->SetTotalMeseta(0, 0);
 		m_statusWindow->clearLog();
 	}
+}
+
+// ステータスウィンドウを開く
+void CMesetaDlg::openStatusWindow()
+{
+	if (m_statusWindow)
+	{
+		m_statusWindow->DestroyWindow();		
+	}
+
+	CDialogTemplate cdt;
+	cdt.Load(MAKEINTRESOURCE(IDD_FORMVIEW));
+	cdt.SetFont(iniData.fontName, iniData.fontSize);
+
+	m_statusWindow = new CStatusWindow(this);
+	m_statusWindow->CreateIndirect(cdt.m_hTemplate, this);
+
+	CWinApp* pApp = AfxGetApp();
+	int Sub_Dlg_top = pApp->GetProfileInt(L"DLG_POS", L"SUB_TOP", 0);
+	int Sub_Dlg_left = pApp->GetProfileInt(L"DLG_POS", L"SUB_LEFT", 0);
+	BOOL top = m_check_pre_status.GetCheck();
+	m_statusWindow->setTop(top, Sub_Dlg_top, Sub_Dlg_left);
+
+	int alpha = m_window_alpha.GetPos();
+	m_statusWindow->SetAlpha(alpha);
+
+	m_statusWindow->SetColor(iniData.dlgColor, iniData.fntColorN);
+	clearStatusWindow();
+	m_statusWindow->SetInfo(L"スタートで起動");
 }
 
 
@@ -265,13 +290,12 @@ BOOL CMesetaDlg::readINI()
 	}
 
 	// セーブフォルダ
-	TCHAR path[_MAX_PATH + 1];
-	TCHAR drive[_MAX_PATH + 1];
-	GetModuleFileName(NULL, path, _MAX_PATH);
-	CString modulePath(path);
-	_wsplitpath_s(modulePath.GetBuffer(), drive, _MAX_PATH, path, _MAX_PATH, NULL, NULL, NULL, NULL);
-	modulePath = CString(drive) + CString(path);
-	iniData.saveDirectory = pApp->GetProfileString(L"LOG_DIR", L"SAVE_LOG", modulePath.GetString());
+	// 空欄の場合は実行ファイルと同じ場所
+	iniData.saveDirectory = pApp->GetProfileString(L"LOG_DIR", L"SAVE_LOG", L"");
+
+	// フォント
+	iniData.fontName = pApp->GetProfileString(L"FONT", L"NAME", L"UD デジタル 教科書体 NK-B");
+	iniData.fontSize = pApp->GetProfileInt(L"FONT", L"SIZE", 10);
 	
 	// ダイアログの初期位置
 	CString ini;
@@ -285,6 +309,8 @@ BOOL CMesetaDlg::readINI()
 		Sub_Dlg_top = Dlg_top;
 		Sub_Dlg_left = Dlg_left + 485;
 		iniData.pos_save = false;
+		pApp->WriteProfileInt(L"DLG_POS", L"SUB_TOP", Sub_Dlg_top);
+		pApp->WriteProfileInt(L"DLG_POS", L"SUB_LEFT", Sub_Dlg_left);
 	}
 	else
 		iniData.pos_save = true;
@@ -301,14 +327,10 @@ BOOL CMesetaDlg::readINI()
 	if (check1)
 		m_check_pre_status.EnableWindow(false);
 
-	bool check2 = m_check_pre_status.GetCheck();
-	m_statusWindow->setTop(check1||check2, Sub_Dlg_top, Sub_Dlg_left);
-
 	// 透明度
 	m_window_alpha.SetRange(32, 255);
 	int pos = pApp->GetProfileInt(L"TRANSPARENT", L"ALPHA", 144);
 	m_window_alpha.SetPos(pos);
-	m_statusWindow->SetAlpha(pos);
 	ini = pApp->GetProfileString(L"TRANSPARENT", L"TRANS_LOG", L"FALSE");
 	m_check_trans_log.SetCheck((ini == L"TRUE"));
 	if(m_check_trans_log.GetCheck())
@@ -376,6 +398,10 @@ BOOL CMesetaDlg::writeINI()
 
 	// セーブフォルダ
 	pApp->WriteProfileString(L"LOG_DIR", L"SAVE_LOG", iniData.saveDirectory);
+
+	// フォント
+	pApp->WriteProfileString(L"FONT", L"NAME", iniData.fontName);
+	pApp->WriteProfileInt(L"FONT", L"SIZE", iniData.fontSize);
 
 	// ウィンドウ位置の保存
 	pApp->WriteProfileString(L"DLG_POS", L"SAVE", iniData.pos_save?L"TRUE":L"FALSE");

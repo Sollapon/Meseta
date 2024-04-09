@@ -85,12 +85,13 @@ public:
 	// 独自追加関数
 	bool SetHotkey();
 	bool DeleteHotkey();
-	void clearStatusWindow();	
+	void clearStatusWindow();
+	void openStatusWindow();
 	bool checkIniFile();
 	BOOL readINI();
 	BOOL writeINI();
 	void Init(bool run);
-	void finishRecData(long long currentMeseta);
+	void finishRecData(long long currentMeseta);	
 	
 public:
 	// ユーティリティ

@@ -17,6 +17,7 @@ public:
 		, hotkeyUseDell(false)
 		, padUse(false)
 		, padNum(0)
+		, fontSize(0)
 	{}
 	CString ngs_log_path; // log_ngsフォルダ
 	BOOL pos_save; // ウィンドウ位置記憶
@@ -34,4 +35,6 @@ public:
 	CString padDel; // 削除ボタン
 	int padNum; // パッドID
 	CString saveDirectory; // 保存フォルダ
+	CString fontName; // フォント
+	WORD fontSize; // フォントサイズ
 };
