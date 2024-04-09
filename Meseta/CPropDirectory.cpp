@@ -80,14 +80,17 @@ void CPropDirectory::OnOK()
 	m_edit_save_dir.GetWindowText(path);
 	parentDlg->iniData.saveDirectory = path;
 	CString last = parentDlg->iniData.saveDirectory.Right(1);
-	if (parentDlg->iniData.saveDirectory.GetLength()> 0 && last != L"\\")
-		parentDlg->iniData.saveDirectory += CString(L"\\");
-
-	// フォルダの存在チェック
-	if (!PathFileExists(parentDlg->iniData.saveDirectory))
+	if (parentDlg->iniData.saveDirectory.GetLength() > 0)
 	{
-		parentDlg->iniData.saveDirectory = L"";
-		MessageBox(L"存在するフォルダを設定してください。", L"エラー");
+		if (last != L"\\")
+			parentDlg->iniData.saveDirectory += CString(L"\\");
+
+		// フォルダの存在チェック
+		if (!PathFileExists(parentDlg->iniData.saveDirectory))
+		{
+			parentDlg->iniData.saveDirectory = L"";
+			MessageBox(L"存在するフォルダを設定してください。", L"エラー");
+		}
 	}
 
 	m_edit_save_dir.SetWindowText(parentDlg->iniData.saveDirectory);

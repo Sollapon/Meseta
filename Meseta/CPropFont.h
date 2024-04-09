@@ -32,8 +32,13 @@ private:
 	FONT_INFO fontInfo;
 	CFont sampleFont;
 	CBrush m_brDlg;
+	COLORREF m_bgColor;
 	COLORREF m_fontColorN;
 	COLORREF m_fontColorR;
+	BOOL openWindow;
+
+public:
+	void InvalidateSample();
 
 public:
 	// 追加のメッセージハンドラ
@@ -42,4 +47,7 @@ public:
 	afx_msg void OnBnClickedButtonChangeFont();
 	afx_msg void OnDestroy();
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	afx_msg void OnBnClickedButtonFontCol1();
+	afx_msg void OnBnClickedButtonFontCol2();
+	afx_msg void OnBnClickedButtonFontCol3();
 };
