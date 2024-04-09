@@ -186,6 +186,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CPropDirectory.h" />
+    <ClInclude Include="CPropFont.h" />
     <ClInclude Include="CPropFunction.h" />
     <ClInclude Include="CPropHotkey.h" />
     <ClInclude Include="CStatusWindow.h" />
@@ -202,6 +203,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPropDirectory.cpp" />
+    <ClCompile Include="CPropFont.cpp" />
     <ClCompile Include="CPropFunction.cpp" />
     <ClCompile Include="CPropHotkey.cpp" />
     <ClCompile Include="CStatusWindow.cpp" />

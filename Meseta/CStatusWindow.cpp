@@ -256,3 +256,10 @@ void CStatusWindow::setTop(bool b, int top, int left)
 
 	SetWindowPos( b ? &CStatusWindow::wndTopMost : &CStatusWindow::wndNoTopMost, left, top, 0, 0, flag);	
 }
+
+// フォント設定
+void CStatusWindow::setCtrlFont(CFont* font)
+{
+	SetFont(font, false);
+	SendMessageToDescendants(WM_SETFONT,(WPARAM)font->m_hObject,MAKELONG(FALSE, 0),	FALSE);
+}

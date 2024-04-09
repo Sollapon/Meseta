@@ -13,7 +13,7 @@ class CPropHotkey : public CMFCPropertyPage
 	DECLARE_DYNAMIC(CPropHotkey)
 
 public:
-	CPropHotkey(CMesetaDlg* parent);   // 標準コンストラクター
+	CPropHotkey(CMesetaDlg* pParent);   // 標準コンストラクター
 	virtual ~CPropHotkey();
 
 // ダイアログ データ

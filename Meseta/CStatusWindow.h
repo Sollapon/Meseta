@@ -72,4 +72,7 @@ public:
 	
 	// 最前面設定
 	void setTop(bool b, int top=-1, int left=-1);	
+
+	// フォント設定
+	void setCtrlFont(CFont* font);
 };

@@ -13,9 +13,9 @@
 
 IMPLEMENT_DYNAMIC(CPropHotkey, CMFCPropertyPage)
 
-CPropHotkey::CPropHotkey(CMesetaDlg* parent /*=nullptr*/)
+CPropHotkey::CPropHotkey(CMesetaDlg* pParent /*=nullptr*/)
 	: CMFCPropertyPage(IDD_PROPPAGE_HOTKEY)
-	, parentDlg(parent)
+	, parentDlg(pParent)
 {
 
 }

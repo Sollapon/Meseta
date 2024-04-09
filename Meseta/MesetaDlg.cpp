@@ -12,6 +12,7 @@
 #include "CPropHotkey.h"
 #include "CPropDirectory.h"
 #include "CPropFunction.h"
+#include "CPropFont.h"
 
 
 // Xinputライブラリ
@@ -193,23 +194,39 @@ void CMesetaDlg::openStatusWindow()
 		m_statusWindow->DestroyWindow();		
 	}
 
+	// ダイアログテンプレートから基本情報読み出し
 	CDialogTemplate cdt;
 	cdt.Load(MAKEINTRESOURCE(IDD_FORMVIEW));
-	cdt.SetFont(iniData.fontName, iniData.fontSize);
+	cdt.SetFont(iniData.fontInfo.fontName, iniData.fontInfo.fontSize);
 
 	m_statusWindow = new CStatusWindow(this);
 	m_statusWindow->CreateIndirect(cdt.m_hTemplate, this);
 
+	// フォントの設定
+	CFont* fp = m_statusWindow->GetFont();
+	LOGFONT lf;
+	fp->GetLogFont(&lf);
+	lf.lfWeight = iniData.fontInfo.fontWeight;
+	lf.lfItalic = iniData.fontInfo.fontItalic;
+	m_statusFont.DeleteObject();
+	m_statusFont.CreateFontIndirect(&lf);
+	m_statusWindow ->setCtrlFont(&m_statusFont);
+	
+	// 表示位置
 	CWinApp* pApp = AfxGetApp();
 	int Sub_Dlg_top = pApp->GetProfileInt(L"DLG_POS", L"SUB_TOP", 0);
 	int Sub_Dlg_left = pApp->GetProfileInt(L"DLG_POS", L"SUB_LEFT", 0);
 	BOOL top = m_check_pre_status.GetCheck();
 	m_statusWindow->setTop(top, Sub_Dlg_top, Sub_Dlg_left);
 
+	// 透明度
 	int alpha = m_window_alpha.GetPos();
 	m_statusWindow->SetAlpha(alpha);
 
+	// 色設定
 	m_statusWindow->SetColor(iniData.dlgColor, iniData.fntColorN);
+
+	// 文字列初期化
 	clearStatusWindow();
 	m_statusWindow->SetInfo(L"スタートで起動");
 }
@@ -294,8 +311,10 @@ BOOL CMesetaDlg::readINI()
 	iniData.saveDirectory = pApp->GetProfileString(L"LOG_DIR", L"SAVE_LOG", L"");
 
 	// フォント
-	iniData.fontName = pApp->GetProfileString(L"FONT", L"NAME", L"UD デジタル 教科書体 NK-B");
-	iniData.fontSize = pApp->GetProfileInt(L"FONT", L"SIZE", 10);
+	iniData.fontInfo.fontName = pApp->GetProfileString(L"FONT", L"NAME", L"UD デジタル 教科書体 NK-B");
+	iniData.fontInfo.fontSize = pApp->GetProfileInt(L"FONT", L"SIZE", 10);
+	iniData.fontInfo.fontWeight = pApp->GetProfileInt(L"FONT", L"WEIGHT", FW_NORMAL);
+	iniData.fontInfo.fontItalic = pApp->GetProfileInt(L"FONT", L"ITALIC", 0);
 	
 	// ダイアログの初期位置
 	CString ini;
@@ -400,8 +419,10 @@ BOOL CMesetaDlg::writeINI()
 	pApp->WriteProfileString(L"LOG_DIR", L"SAVE_LOG", iniData.saveDirectory);
 
 	// フォント
-	pApp->WriteProfileString(L"FONT", L"NAME", iniData.fontName);
-	pApp->WriteProfileInt(L"FONT", L"SIZE", iniData.fontSize);
+	pApp->WriteProfileString(L"FONT", L"NAME", iniData.fontInfo.fontName);
+	pApp->WriteProfileInt(L"FONT", L"SIZE", iniData.fontInfo.fontSize);
+	pApp->WriteProfileInt(L"FONT", L"WEIGHT", iniData.fontInfo.fontWeight);
+	pApp->WriteProfileInt(L"FONT", L"ITALIC", iniData.fontInfo.fontItalic);
 
 	// ウィンドウ位置の保存
 	pApp->WriteProfileString(L"DLG_POS", L"SAVE", iniData.pos_save?L"TRUE":L"FALSE");
@@ -706,6 +727,9 @@ void CMesetaDlg::OnDestroy()
 	// ホットキーの削除
 	DeleteHotkey();
 
+	// フォント削除
+	m_statusFont.DeleteObject();
+
 	// タイマーが動いてたら全部殺す
 	if (m_timerID != 0)
 		KillTimer(m_timerID);
@@ -717,7 +741,7 @@ void CMesetaDlg::OnDestroy()
 		KillTimer(m_padTimerID);
 
 	// INIファイルに設定をすべて保存
-	writeINI();
+	writeINI();	
 	
 	CDialogEx::OnDestroy();
 }
@@ -1002,11 +1026,13 @@ void CMesetaDlg::OnBnClickedButtonConfig()
 	// プロパティページ作成
 	CPropHotkey propHotkey(this);
 	CPropDirectory propDirectory(this);
+	CPropFont propFont(this);
 	CPropFunction propFunctiuon(this);
 
 	// シートにページを追加
 	PropSheet.AddPage(&propFunctiuon);
 	PropSheet.AddPage(&propHotkey);
+	PropSheet.AddPage(&propFont);
 	PropSheet.AddPage(&propDirectory);
 	
 	// 設定ダイアログをモーダルで実行

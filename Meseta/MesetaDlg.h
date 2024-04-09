@@ -70,6 +70,7 @@ public:
 	CButton m_buttonStart;
 	CButton m_buttonEnd;
 	CButton m_buttonConfig;
+	CFont m_statusFont;
 
 public:
 	// 独自の追加変数

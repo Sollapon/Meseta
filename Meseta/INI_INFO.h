@@ -3,6 +3,20 @@
 
 #include "framework.h"
 
+class FONT_INFO
+{
+public:
+	FONT_INFO()
+		: fontSize(0)
+		, fontWeight(400)
+		, fontItalic(0)
+	{}
+	CString fontName; // フォント
+	WORD fontSize; // フォントサイズ
+	LONG fontWeight; // フォント重み
+	BYTE fontItalic; // フォント斜体
+};
+
 class INI_FILE
 {
 public:
@@ -17,7 +31,6 @@ public:
 		, hotkeyUseDell(false)
 		, padUse(false)
 		, padNum(0)
-		, fontSize(0)
 	{}
 	CString ngs_log_path; // log_ngsフォルダ
 	BOOL pos_save; // ウィンドウ位置記憶
@@ -35,6 +48,5 @@ public:
 	CString padDel; // 削除ボタン
 	int padNum; // パッドID
 	CString saveDirectory; // 保存フォルダ
-	CString fontName; // フォント
-	WORD fontSize; // フォントサイズ
+	FONT_INFO fontInfo; // フォント
 };
