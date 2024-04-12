@@ -9,7 +9,9 @@
 #define IDD_PROPPAGE_DIRECTORY          108
 #define IDD_PROPPAGE_MEDIUM             109
 #define IDD_PROPPAGE_FONT               109
+#define IDD_PROPPAGE_GAMEPAD            110
 #define IDR_MAINFRAME                   128
+#define IDB_BITMAP_GAME_PAD             145
 #define IDC_BUTTON_START                1000
 #define IDC_LIST1                       1001
 #define IDC_BUTTON_END                  1002
@@ -54,14 +56,45 @@
 #define IDC_BUTTON_FONT_COL3            1047
 #define IDC_EDIT_FONT                   1048
 #define IDC_EDIT_FONT2                  1049
+#define IDC_CHECK_PAD1                  1050
+#define IDC_CHECK_PAD5                  1051
+#define IDC_CHECK_PAD9                  1052
+#define IDC_CHECK_PAD2                  1053
+#define IDC_CHECK_PAD3                  1054
+#define IDC_CHECK_PAD4                  1055
+#define IDC_CHECK_PAD6                  1056
+#define IDC_CHECK_PAD7                  1057
+#define IDC_CHECK_PAD8                  1058
+#define IDC_CHECK_PAD10                 1059
+#define IDC_CHECK_PAD11                 1060
+#define IDC_CHECK_PAD12                 1061
+#define IDC_CHECK_PAD13                 1062
+#define IDC_CHECK_PAD14                 1063
+#define IDC_CHECK_PAD15                 1064
+#define IDC_CHECK_PAD16                 1065
+#define IDC_CHECK_PAD17                 1066
+#define IDC_CHECK_PAD18                 1067
+#define IDC_CHECK_PAD19                 1068
+#define IDC_CHECK_PAD20                 1069
+#define IDC_CHECK_PAD21                 1070
+#define IDC_CHECK_PAD22                 1071
+#define IDC_CHECK_PAD23                 1072
+#define IDC_CHECK_PAD24                 1073
+#define IDC_CHECK_PAD25                 1074
+#define IDC_CHECK_PAD26                 1075
+#define IDC_CHECK_PAD27                 1076
+#define IDC_CHECK_PAD28                 1077
+#define IDC_CHECKGAMEPAD_USE            1078
+#define IDC_COMBO_GAMEPAD_ID            1079
+#define IDC_STATIC_PADID                1080
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        143
+#define _APS_NEXT_RESOURCE_VALUE        146
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1050
+#define _APS_NEXT_CONTROL_VALUE         1081
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

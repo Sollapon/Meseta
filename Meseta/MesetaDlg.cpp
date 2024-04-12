@@ -13,6 +13,7 @@
 #include "CPropDirectory.h"
 #include "CPropFunction.h"
 #include "CPropFont.h"
+#include "CPropGamepad.h"
 
 
 // Xinputライブラリ
@@ -394,7 +395,7 @@ BOOL CMesetaDlg::readINI()
 	// ゲームパッド
 	ini = pApp->GetProfileString(L"GAMEPAD", L"USE", L"FALSE");
 	iniData.padUse = (ini == L"TRUE");
-	iniData.padRec = pApp->GetProfileString(L"GAMEPAD", L"REC", L"2+5");
+	iniData.padRec = pApp->GetProfileString(L"GAMEPAD", L"REC", L"4+5");
 	iniData.padDel = pApp->GetProfileString(L"GAMEPAD", L"DEL", L"1+3+5");
 	iniData.padNum = pApp->GetProfileInt(L"GAMEPAD", L"NUM", 0);
 	
@@ -1028,10 +1029,12 @@ void CMesetaDlg::OnBnClickedButtonConfig()
 	CPropDirectory propDirectory(this);
 	CPropFont propFont(this);
 	CPropFunction propFunctiuon(this);
+	CPropGamepad propGamepad(this);
 
 	// シートにページを追加
 	PropSheet.AddPage(&propFunctiuon);
 	PropSheet.AddPage(&propHotkey);
+	PropSheet.AddPage(&propGamepad);
 	PropSheet.AddPage(&propFont);
 	PropSheet.AddPage(&propDirectory);
 	
