@@ -16,6 +16,8 @@ IMPLEMENT_DYNAMIC(CPropGamepad, CMFCPropertyPage)
 CPropGamepad::CPropGamepad(CMesetaDlg* pParent /*=nullptr*/)
 	: CMFCPropertyPage(IDD_PROPPAGE_GAMEPAD)
 	, parentDlg(pParent)
+	, m_padTimerID(0)
+	, m_padID(0)
 {
 
 }
@@ -29,6 +31,8 @@ void CPropGamepad::DoDataExchange(CDataExchange* pDX)
 	CMFCPropertyPage::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_CHECKGAMEPAD_USE, m_check_gamepad_use);
 	DDX_Control(pDX, IDC_COMBO_GAMEPAD_ID, m_combo_gamepad_num);
+	DDX_Control(pDX, IDC_EDIT_PAD_CONNECT, m_edit_pad_connected);
+	DDX_Control(pDX, IDC_EDIT_PAD_TEST, m_edit_pad_test);
 }
 
 
@@ -63,6 +67,8 @@ BEGIN_MESSAGE_MAP(CPropGamepad, CMFCPropertyPage)
 	ON_BN_CLICKED(IDC_CHECK_PAD26, &CPropGamepad::OnBnClickedCheckPad26)
 	ON_BN_CLICKED(IDC_CHECK_PAD27, &CPropGamepad::OnBnClickedCheckPad27)
 	ON_BN_CLICKED(IDC_CHECK_PAD28, &CPropGamepad::OnBnClickedCheckPad28)
+	ON_WM_DESTROY()
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -80,6 +86,7 @@ BOOL CPropGamepad::OnInitDialog()
 	CString PadNum;
 	PadNum.Format(L"%d", parentDlg->iniData.padNum);
 	m_combo_gamepad_num.SelectString(0, PadNum);
+	m_padID = parentDlg->iniData.padNum;
 	
 	// ボタン文字列変換
 	std::vector<WORD> NUM;
@@ -102,6 +109,10 @@ BOOL CPropGamepad::OnInitDialog()
 		button->SetCheck(true);
 	}
 
+	// ボタンテスト
+	m_connectedPad = L"";
+	m_padTest = L"";
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 例外 : OCX プロパティ ページは必ず FALSE を返します。
 }
@@ -116,7 +127,7 @@ void CPropGamepad::OnOK()
 	CString pn;
 	m_combo_gamepad_num.GetWindowText(pn);
 	parentDlg->iniData.padNum = _ttoi(pn);
-
+	
 	// ボタン番号
 	std::vector<WORD> NUM;
 	for (int i = 1; i <= 14; i++)
@@ -144,6 +155,92 @@ void CPropGamepad::OnOK()
 	CMFCPropertyPage::OnOK();
 }
 
+// タブが切り替えられた
+BOOL CPropGamepad::OnKillActive()
+{
+	// ボタンテスト用タイマー終了
+	EndTimer();
+
+	return CMFCPropertyPage::OnKillActive();
+}
+
+//　タブが有効になった
+BOOL CPropGamepad::OnSetActive()
+{
+	// ボタンテスト用タイマー始動
+	StartTimer();
+
+	return CMFCPropertyPage::OnSetActive();
+}
+
+// キャンセル含む終了処理
+void CPropGamepad::OnDestroy()
+{
+	CMFCPropertyPage::OnDestroy();
+
+	// ボタンテスト用タイマー終了
+	EndTimer();
+}
+
+// パッドテスト用処理
+void CPropGamepad::OnTimer(UINT_PTR nIDEvent)
+{
+	// パッド使用無しの場合はスキップ
+	if (!m_check_gamepad_use.GetCheck())
+		return;
+
+	if (nIDEvent == m_padTimerID)
+	{
+		XINPUT_STATE state;
+		ZeroMemory(&state, sizeof(XINPUT_STATE));
+
+		if (XInputGetState(m_padID, &state) == ERROR_SUCCESS)
+		{
+			// 接続成功
+			if (m_connectedPad != L"接続 OK")
+			{
+				m_connectedPad = L"接続 OK";
+				m_edit_pad_connected.SetWindowText(m_connectedPad);
+			}
+
+			WORD button = state.Gamepad.wButtons;
+			if (button > 0)
+			{
+				std::vector<WORD> numButton;
+				PAD_INFO::checkButton(numButton, button);
+				CString strButton = Num2Str(numButton);
+				if (strButton != m_padTest)
+				{
+					m_padTest = strButton;
+					m_edit_pad_test.SetWindowText(m_padTest);
+				}
+			}
+			else
+			{
+				if (m_padTest != L"ボタンを押してください。")
+				{
+					m_padTest = L"ボタンを押してください。";
+					m_edit_pad_test.SetWindowText(m_padTest);
+				}
+			}
+		}
+		else
+		{
+			// 接続なし
+			if (m_connectedPad != L"未接続")
+			{
+				m_connectedPad = L"未接続";
+				m_edit_pad_connected.SetWindowText(m_connectedPad);
+
+				m_padTest = L"";
+				m_edit_pad_test.SetWindowText(m_padTest);
+			}
+		}		
+	}
+	CMFCPropertyPage::OnTimer(nIDEvent);
+}
+
+
 // ゲームパッドの使用設定
 void CPropGamepad::OnBnClickedCheckgamepadUse()
 {
@@ -154,7 +251,8 @@ void CPropGamepad::OnBnClickedCheckgamepadUse()
 // パッドID設定
 void CPropGamepad::OnCbnSelchangeComboGamepadId()
 {
-	SetModified();
+	m_padID = m_combo_gamepad_num.GetCurSel();
+	SetModified();	
 }
 
 
@@ -272,7 +370,7 @@ void CPropGamepad::OnBnClickedCheckPad28()
 	SetModified();
 }
 
-
+// パッド使用のオンオフでコントロールの有効無効を切り替える
 void CPropGamepad::SetValid(bool valid)
 {
 	m_combo_gamepad_num.EnableWindow(valid);
@@ -285,5 +383,48 @@ void CPropGamepad::SetValid(bool valid)
 		{
 			GetDlgItem(PAD_IDC[key][i])->EnableWindow(valid);
 		}
+	}
+
+	m_edit_pad_connected.EnableWindow(valid);
+	m_edit_pad_test.EnableWindow(valid);
+
+	if (!valid)
+	{
+		m_edit_pad_connected.SetWindowText(L"");
+		m_edit_pad_test.SetWindowText(L"");
+		m_connectedPad = L"";
+		m_padTest = L"";
+	}
+}
+
+// ボタンテスト用タイマー
+void CPropGamepad::StartTimer()
+{
+	// タイマー開始
+	if ( m_padTimerID == 0)
+	{
+		m_padTimerID = 333;
+		SetTimer(m_padTimerID, 40, NULL);
+
+		m_connectedPad = L"";
+		m_edit_pad_connected.SetWindowText(m_connectedPad);
+
+		m_padTest = L"";
+		m_edit_pad_test.SetWindowText(m_padTest);
+	}
+}
+void CPropGamepad::EndTimer()
+{
+	// 毎マー終了
+	if (m_padTimerID != 0)
+	{
+		KillTimer(m_padTimerID);
+		m_padTimerID = 0;
+
+		m_connectedPad = L"";
+		m_edit_pad_connected.SetWindowText(m_connectedPad);
+
+		m_padTest = L"";
+		m_edit_pad_test.SetWindowText(m_padTest);
 	}
 }

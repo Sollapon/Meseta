@@ -12,10 +12,11 @@
 class PAD_INFO
 {
 public:
+	static const unsigned int keyNum = 16;
 	static const unsigned int buttonNum = 2;
 
 	// ボタン番号とフラグ
-	const WORD xinput_button[16] = {
+	inline static const WORD xinput_button[keyNum] = {
 		0,
 		XINPUT_GAMEPAD_A,
 		XINPUT_GAMEPAD_B,
@@ -82,6 +83,17 @@ public:
 		bool check2 = (padBit & checkBit[idx]) == checkBit[idx]; // 前回も押されている
 
 		return (chek1 && !check2);
+	}
+
+	// ボタンチェック
+	static void checkButton(std::vector<WORD> &button, WORD bit)
+	{
+		button.clear();
+		for (WORD i = 0; i < keyNum; i++)
+		{
+			if (bit&xinput_button[i])
+				button.push_back(i);
+		}
 	}
 
 public:

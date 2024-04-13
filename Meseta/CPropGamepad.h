@@ -73,8 +73,13 @@ public:
 	// 追加のメッセージハンドラ
 	virtual BOOL OnInitDialog();
 	virtual void OnOK();
+	virtual BOOL OnKillActive();
+	virtual BOOL OnSetActive();
+	afx_msg void OnDestroy();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg void OnBnClickedCheckgamepadUse();
 	afx_msg void OnCbnSelchangeComboGamepadId();
+
 	afx_msg void OnBnClickedCheckPad1();
 	afx_msg void OnBnClickedCheckPad2();
 	afx_msg void OnBnClickedCheckPad3();
@@ -108,9 +113,19 @@ public:
 	// コントロール変数
 	CButton m_check_gamepad_use;
 	CComboBox m_combo_gamepad_num;
+	CEdit m_edit_pad_connected;
+	CEdit m_edit_pad_test;
+
+	// パッドテスト
+	UINT m_padTimerID;
+	DWORD m_padID;
+	CString m_connectedPad;
+	CString m_padTest;
 
 public:
 	void SetValid(bool valid);
+	void StartTimer();
+	void EndTimer();
 
 public:
 	// ユーティリティ
@@ -154,5 +169,5 @@ public:
 			str += last;
 		}
 		return str;
-	}
+	}	
 };
