@@ -12,7 +12,7 @@
 IMPLEMENT_DYNAMIC(CStatusWindow, CDialogEx)
 
 CStatusWindow::CStatusWindow(CWnd* pParent /*=nullptr*/)
-	: CDialogEx(IDD_FORMVIEW, pParent)
+	: CDialogEx(IDD_STATUS_3, pParent)
 {
 
 }

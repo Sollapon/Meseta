@@ -2,7 +2,7 @@
 // Microsoft Visual C++ で生成されたインクルード ファイル。
 // Meseta.rc で使用
 //
-#define IDD_FORMVIEW                    101
+#define IDD_STATUS_3                    101
 #define IDD_MESETA_DIALOG               102
 #define IDD_PROPPAGE_HOTKEY             106
 #define IDD_PROPPAGE_FUNCTION           107
@@ -10,6 +10,11 @@
 #define IDD_PROPPAGE_MEDIUM             109
 #define IDD_PROPPAGE_FONT               109
 #define IDD_PROPPAGE_GAMEPAD            110
+#define IDD_STATUS_1                    111
+#define IDD_STATUS_2                    112
+#define IDD_STATUS_4                    113
+#define IDD_STATUS_6                    114
+#define IDD_STATUS_5                    114
 #define IDR_MAINFRAME                   128
 #define IDB_BITMAP_GAME_PAD             145
 #define IDC_BUTTON_START                1000
@@ -89,6 +94,8 @@
 #define IDC_STATIC_PADID                1080
 #define IDC_EDIT_PAD_CONNECT            1081
 #define IDC_EDIT_PAD_TEST               1082
+#define IDC_STATIC_MESETA4              1083
+#define IDC_STATIC_MESETA5              1084
 
 // Next default values for new objects
 // 
@@ -96,7 +103,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        146
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1083
+#define _APS_NEXT_CONTROL_VALUE         1085
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

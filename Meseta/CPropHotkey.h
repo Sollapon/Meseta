@@ -46,6 +46,7 @@ public:
 	afx_msg void OnBnClickedHkAlt2();
 	afx_msg void OnBnClickedHkWin2();
 	afx_msg void OnCbnSelchangeComboHotkey2();
+	virtual BOOL OnSetActive();
 
 public:
 	// コントロールの変数
@@ -68,5 +69,5 @@ public:
 public:
 	bool checkInvalid(int idx);
 	void useHotkeyDel(BOOL use);
-	CString makeHotkeyStr(int idx);
+	CString makeHotkeyStr(int idx);	
 };

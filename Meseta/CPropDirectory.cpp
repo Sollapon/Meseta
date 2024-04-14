@@ -145,3 +145,16 @@ void CPropDirectory::OnBnClickedButtonSaveDir()
 		m_edit_save_dir.SetWindowText(fullPathName);
 	}
 }
+
+// 適用時のリライト
+BOOL CPropDirectory::OnSetActive()
+{
+	// TODO: ここに特定なコードを追加するか、もしくは基底クラスを呼び出してください。
+	if (parentDlg->rewriteStatus)
+	{
+		parentDlg->openStatusWindow();
+		parentDlg->rewriteStatus = FALSE;
+	}
+
+	return CMFCPropertyPage::OnSetActive();
+}

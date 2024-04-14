@@ -35,7 +35,6 @@ private:
 	COLORREF m_bgColor;
 	COLORREF m_fontColorN;
 	COLORREF m_fontColorR;
-	BOOL openWindow;
 
 public:
 	void InvalidateSample();
@@ -50,4 +49,5 @@ public:
 	afx_msg void OnBnClickedButtonFontCol1();
 	afx_msg void OnBnClickedButtonFontCol2();
 	afx_msg void OnBnClickedButtonFontCol3();
+	virtual BOOL OnSetActive();
 };

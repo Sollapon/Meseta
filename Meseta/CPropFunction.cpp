@@ -103,3 +103,15 @@ void CPropFunction::OnEditchangeComboAutoRefresh()
 {
 	SetModified();
 }
+
+// 適用時のリライト
+BOOL CPropFunction::OnSetActive()
+{
+	if (parentDlg->rewriteStatus)
+	{
+		parentDlg->openStatusWindow();
+		parentDlg->rewriteStatus = FALSE;
+	}
+
+	return CMFCPropertyPage::OnSetActive();
+}

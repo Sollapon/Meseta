@@ -236,6 +236,18 @@ void CPropHotkey::OnOK()
 	CMFCPropertyPage::OnOK();
 }
 
+// 適用時のリライト
+BOOL CPropHotkey::OnSetActive()
+{
+	if (parentDlg->rewriteStatus)
+	{
+		parentDlg->openStatusWindow();
+		parentDlg->rewriteStatus = FALSE;
+	}
+
+	return CMFCPropertyPage::OnSetActive();
+}
+
 
 // 修飾キーが最低でも一つ選ばれてるかチェック
 bool CPropHotkey::checkInvalid(int idx)

@@ -29,15 +29,18 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 public:
+	// コントロール変数
+	CButton m_check_auto_refresh;
+	CComboBox m_combo_auto_refresh;
+	CButton m_check_save_pos;
+
+public:
+	// 追加のメッセージハンドラ
 	virtual BOOL OnInitDialog();
 	virtual void OnOK();
 	afx_msg void OnBnClickedCheckAutoRefresh();
 	afx_msg void OnCbnSelchangeComboAutoRefresh();
 	afx_msg void OnEditchangeComboAutoRefresh();
 	afx_msg void OnBnClickedCheckSavePos();
-
-public:
-	CButton m_check_auto_refresh;
-	CComboBox m_combo_auto_refresh;
-	CButton m_check_save_pos;
+	virtual BOOL OnSetActive();
 };

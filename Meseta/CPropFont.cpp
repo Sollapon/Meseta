@@ -20,7 +20,6 @@ CPropFont::CPropFont(CMesetaDlg* pParent /*=nullptr*/)
 	, m_bgColor(0)	
 	, m_fontColorN(0)
 	, m_fontColorR(0)
-	, openWindow(false)
 {
 
 }
@@ -93,15 +92,11 @@ BOOL CPropFont::OnInitDialog()
 void CPropFont::OnOK()
 {
 	// TODO: ここに特定なコードを追加するか、もしくは基底クラスを呼び出してください。
-	if (openWindow)
-	{
-		parentDlg->iniData.fontInfo = fontInfo;
-		parentDlg->iniData.dlgColor = m_bgColor;
-		parentDlg->iniData.fntColorN = m_fontColorN;
-		parentDlg->iniData.fntColorR = m_fontColorR;
-		parentDlg->openStatusWindow();
-		openWindow = false;
-	}
+	parentDlg->iniData.fontInfo = fontInfo;
+	parentDlg->iniData.dlgColor = m_bgColor;
+	parentDlg->iniData.fntColorN = m_fontColorN;
+	parentDlg->iniData.fntColorR = m_fontColorR;
+	parentDlg->rewriteStatus = TRUE;
 
 	CMFCPropertyPage::OnOK();
 }
@@ -182,7 +177,6 @@ void CPropFont::OnBnClickedButtonChangeFont()
 		GetDlgItem(IDC_EDIT_FONT2)->SetWindowText(fntSize);
 
 		SetModified();
-		openWindow = true;
 	}
 }
 
@@ -203,7 +197,6 @@ void CPropFont::OnBnClickedButtonFontCol1()
 			m_brDlg.CreateSolidBrush(m_bgColor);
 			InvalidateSample();
 			SetModified();
-			openWindow = true;
 		}
 	}
 }
@@ -223,7 +216,6 @@ void CPropFont::OnBnClickedButtonFontCol2()
 			m_fontColorN = getCol;
 			InvalidateSample();
 			SetModified();
-			openWindow = true;
 		}
 	}
 }
@@ -243,7 +235,6 @@ void CPropFont::OnBnClickedButtonFontCol3()
 			m_fontColorR = getCol;
 			InvalidateSample();
 			SetModified();
-			openWindow = true;
 		}
 	}
 }
@@ -254,4 +245,17 @@ void CPropFont::InvalidateSample()
 	GetDlgItem(IDC_PICTURE_BG)->Invalidate();
 	GetDlgItem(IDC_FONT_SAMPLE_1)->Invalidate();
 	GetDlgItem(IDC_FONT_SAMPLE_2)->Invalidate();
+}
+
+// 適用時のリライト
+BOOL CPropFont::OnSetActive()
+{
+	// TODO: ここに特定なコードを追加するか、もしくは基底クラスを呼び出してください。
+	if (parentDlg->rewriteStatus)
+	{
+		parentDlg->openStatusWindow();
+		parentDlg->rewriteStatus = FALSE;
+	}
+
+	return CMFCPropertyPage::OnSetActive();
 }

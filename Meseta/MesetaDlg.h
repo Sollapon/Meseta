@@ -81,6 +81,7 @@ public:
 	UINT m_padTimerID;
 	PAD_INFO padInfo;
 	INI_FILE iniData;
+	BOOL rewriteStatus;
 	
 public:
 	// 独自追加関数

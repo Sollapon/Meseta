@@ -35,6 +35,7 @@ CMesetaDlg::CMesetaDlg(CWnd* pParent /*=nullptr*/)
 	, m_timerID(0)
 	, m_autoFinishTimerID(0)
 	, m_padTimerID(0)
+	, rewriteStatus(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -197,7 +198,7 @@ void CMesetaDlg::openStatusWindow()
 
 	// ダイアログテンプレートから基本情報読み出し
 	CDialogTemplate cdt;
-	cdt.Load(MAKEINTRESOURCE(IDD_FORMVIEW));
+	cdt.Load(MAKEINTRESOURCE(IDD_STATUS_3));
 	cdt.SetFont(iniData.fontInfo.fontName, iniData.fontInfo.fontSize);
 
 	m_statusWindow = new CStatusWindow(this);
@@ -1041,6 +1042,11 @@ void CMesetaDlg::OnBnClickedButtonConfig()
 	// 設定ダイアログをモーダルで実行
 	if (PropSheet.DoModal() == IDOK)
 	{
+		if (rewriteStatus)
+		{
+			openStatusWindow();
+			rewriteStatus = FALSE;
+		}
 	}
 }
 

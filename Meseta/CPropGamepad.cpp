@@ -170,6 +170,13 @@ BOOL CPropGamepad::OnSetActive()
 	// ボタンテスト用タイマー始動
 	StartTimer();
 
+	// 別タブでステータスウィンドウの表示が変更された
+	if (parentDlg->rewriteStatus)
+	{
+		parentDlg->openStatusWindow();
+		parentDlg->rewriteStatus = FALSE;
+	}
+
 	return CMFCPropertyPage::OnSetActive();
 }
 
