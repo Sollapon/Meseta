@@ -29,13 +29,11 @@ void CPropFunction::DoDataExchange(CDataExchange* pDX)
 	CMFCPropertyPage::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_CHECK_AUTO_REFRESH, m_check_auto_refresh);
 	DDX_Control(pDX, IDC_COMBO_AUTO_REFRESH, m_combo_auto_refresh);
-	DDX_Control(pDX, IDC_CHECK_SAVE_POS, m_check_save_pos);
 }
 
 BEGIN_MESSAGE_MAP(CPropFunction, CMFCPropertyPage)
 	ON_BN_CLICKED(IDC_CHECK_AUTO_REFRESH, &CPropFunction::OnBnClickedCheckAutoRefresh)
 	ON_CBN_SELCHANGE(IDC_COMBO_AUTO_REFRESH, &CPropFunction::OnCbnSelchangeComboAutoRefresh)
-	ON_BN_CLICKED(IDC_CHECK_SAVE_POS, &CPropFunction::OnBnClickedCheckSavePos)
 	ON_CBN_EDITCHANGE(IDC_COMBO_AUTO_REFRESH, &CPropFunction::OnEditchangeComboAutoRefresh)
 END_MESSAGE_MAP()
 
@@ -49,7 +47,6 @@ BOOL CPropFunction::OnInitDialog()
 
 	// INIデータから初期値をセット
 	m_check_auto_refresh.SetCheck(parentDlg->iniData.auto_refresh);
-	m_check_save_pos.SetCheck(parentDlg->iniData.pos_save);
 
 	// 自動更新時間の文字列セット
 	CString time;
@@ -65,7 +62,6 @@ void CPropFunction::OnOK()
 {
 	// INI更新
 	parentDlg->iniData.auto_refresh = m_check_auto_refresh.GetCheck();
-	parentDlg->iniData.pos_save = m_check_save_pos.GetCheck();
 
 	CString time;
 	m_combo_auto_refresh.GetWindowText(time);
@@ -88,12 +84,6 @@ void CPropFunction::OnBnClickedCheckAutoRefresh()
 
 // チェックボックスをクリックしたら変更フラグ立てる
 void CPropFunction::OnCbnSelchangeComboAutoRefresh()
-{
-	SetModified();
-}
-
-// チェックボックスをクリックしたら変更フラグ立てる
-void CPropFunction::OnBnClickedCheckSavePos()
 {
 	SetModified();
 }

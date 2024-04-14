@@ -11,8 +11,10 @@
 
 IMPLEMENT_DYNAMIC(CStatusWindow, CDialogEx)
 
-CStatusWindow::CStatusWindow(CWnd* pParent /*=nullptr*/)
+CStatusWindow::CStatusWindow(CWnd* pParent, INT logNum)
 	: CDialogEx(IDD_STATUS_3, pParent)
+	, m_fontColor(RGB(255,255,255))
+	, m_logNum(logNum)
 {
 
 }
@@ -193,22 +195,13 @@ void CStatusWindow::SetTotalMeseta(long long meseta, long long mph)
 // ログを消去する
 void CStatusWindow::clearLog()
 {
-	GetDlgItem(IDC_STATIC_MESETA1)->SetWindowText(L"");
-	GetDlgItem(IDC_STATIC_MESETA2)->SetWindowText(L"");
-	GetDlgItem(IDC_STATIC_MESETA3)->SetWindowText(L"");
+	for ( int i = 0; i < m_logNum; i++)
+		GetDlgItem(log_text_id[i])->SetWindowText(L"");
 }
 
 // ログを更新
 void CStatusWindow::SetLog(const std::vector <MesetaData>& mesetaData, bool change)
 {
-
-	DWORD id[3] =
-	{
-		IDC_STATIC_MESETA1,
-		IDC_STATIC_MESETA2,
-		IDC_STATIC_MESETA3
-	};
-
 	clearLog();
 
 	if (mesetaData.size() == 0) return;
@@ -224,10 +217,10 @@ void CStatusWindow::SetLog(const std::vector <MesetaData>& mesetaData, bool chan
 		CString text;
 		text.Format(L"[%d]\n%s\n(%s)", data.idx, m.GetString(), mps.GetString());
 		
-		// 最新３件のみ表示
-		if (idx < 3)
+		// 直近ログの表示
+		if (idx < m_logNum)
 		{
-			GetDlgItem(id[idx])->SetWindowText(text.GetString());
+			GetDlgItem(log_text_id[idx])->SetWindowText(text.GetString());
 			idx++;
 		}
 		else

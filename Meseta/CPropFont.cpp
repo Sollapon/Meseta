@@ -1,6 +1,6 @@
 ﻿// CPropFont.cpp : 実装ファイル
 // 
-// 設定：表示タブ
+// 設定：外観タブ
 //
 
 #include "pch.h"

@@ -32,7 +32,6 @@ public:
 	// コントロール変数
 	CButton m_check_auto_refresh;
 	CComboBox m_combo_auto_refresh;
-	CButton m_check_save_pos;
 
 public:
 	// 追加のメッセージハンドラ
@@ -41,6 +40,5 @@ public:
 	afx_msg void OnBnClickedCheckAutoRefresh();
 	afx_msg void OnCbnSelchangeComboAutoRefresh();
 	afx_msg void OnEditchangeComboAutoRefresh();
-	afx_msg void OnBnClickedCheckSavePos();
 	virtual BOOL OnSetActive();
 };

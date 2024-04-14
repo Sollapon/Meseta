@@ -22,6 +22,7 @@ class INI_FILE
 public:
 	INI_FILE()
 		: pos_save(false)
+		, disp_logNum(3)
 		, disp_interval(false)
 		, auto_refresh(false)
 		, refresh_second(10)
@@ -34,6 +35,7 @@ public:
 	{}
 	CString ngs_log_path; // log_ngsフォルダ
 	BOOL pos_save; // ウィンドウ位置記憶
+	int disp_logNum; // 直近のログの表示数
 	BOOL disp_interval; // インターバル表示
 	BOOL auto_refresh; // 自動更新
 	int refresh_second; // 自動更新間隔

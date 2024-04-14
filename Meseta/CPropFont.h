@@ -1,6 +1,6 @@
 ﻿// CPropFont ダイアログ
 // 
-// 設定：表示
+// 設定：外観
 //
 #pragma once
 

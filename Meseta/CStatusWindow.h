@@ -9,7 +9,7 @@ class CStatusWindow : public CDialogEx
 	DECLARE_DYNAMIC(CStatusWindow)
 
 public:
-	CStatusWindow(CWnd* pParent = nullptr);   // 標準コンストラクター
+	CStatusWindow(CWnd* pParent, INT logNum);   // 標準コンストラクター
 	virtual ~CStatusWindow();
 
 // ダイアログ データ
@@ -35,6 +35,7 @@ public:
 	// コントロールの変数
 	CBrush m_brDlg;
 	COLORREF m_fontColor;
+	INT m_logNum;
 
 public:
 	// ステータスウィンドウ更新関数
@@ -75,4 +76,13 @@ public:
 
 	// フォント設定
 	void setCtrlFont(CFont* font);
+public:
+	const DWORD log_text_id[5] =
+	{
+		IDC_STATIC_MESETA1,
+		IDC_STATIC_MESETA2,
+		IDC_STATIC_MESETA3,
+		IDC_STATIC_MESETA4,
+		IDC_STATIC_MESETA5,
+	};
 };

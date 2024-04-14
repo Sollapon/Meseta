@@ -14,6 +14,7 @@
 #include "CPropFunction.h"
 #include "CPropFont.h"
 #include "CPropGamepad.h"
+#include "CPropDisp.h"
 
 
 // Xinputライブラリ
@@ -196,12 +197,20 @@ void CMesetaDlg::openStatusWindow()
 		m_statusWindow->DestroyWindow();		
 	}
 
+	const WORD DIALOG_IDD[5] = {
+		IDD_STATUS_1,
+		IDD_STATUS_2,
+		IDD_STATUS_3,
+		IDD_STATUS_4,
+		IDD_STATUS_5,
+	};
+
 	// ダイアログテンプレートから基本情報読み出し
 	CDialogTemplate cdt;
-	cdt.Load(MAKEINTRESOURCE(IDD_STATUS_3));
+	cdt.Load(MAKEINTRESOURCE(DIALOG_IDD[iniData.disp_logNum-1]));
 	cdt.SetFont(iniData.fontInfo.fontName, iniData.fontInfo.fontSize);
 
-	m_statusWindow = new CStatusWindow(this);
+	m_statusWindow = new CStatusWindow(this, iniData.disp_logNum);
 	m_statusWindow->CreateIndirect(cdt.m_hTemplate, this);
 
 	// フォントの設定
@@ -377,6 +386,9 @@ BOOL CMesetaDlg::readINI()
 	ini = pApp->GetProfileString(L"DISP", L"INTERVAL", L"FALSE");
 	iniData.disp_interval = (ini == L"TRUE");
 
+	// 直近のログ表示数
+	iniData.disp_logNum = pApp->GetProfileInt(L"DISP", L"LOG_NUM", 3);
+
 	// 色読み取り
 	ini = pApp->GetProfileString(L"COLORE", L"DIALOG", L"000000");
 	iniData.dlgColor = CMesetaDlg::Str2Col(ini);
@@ -431,6 +443,9 @@ BOOL CMesetaDlg::writeINI()
 
 	// インターバル表示に変更
 	pApp->WriteProfileString(L"DISP", L"INTERVAL", iniData.disp_interval ? L"TRUE" : L"FALSE");
+
+	// 直近のログ表示数
+	pApp->WriteProfileInt(L"DISP", L"LOG_NUM", iniData.disp_logNum);
 
 	// 最前面設定
 	pApp->WriteProfileString(L"TOP_WINDOW", L"LOG", (bool)m_check_pre_log.GetCheck()?L"TRUE":L"FALSE");
@@ -1025,15 +1040,17 @@ void CMesetaDlg::OnBnClickedButtonConfig()
 	CPropertySheet PropSheet(_T("設定"));
 	PropSheet.m_psh.dwFlags &= ~(PSH_HASHELP);
 
-	// プロパティページ作成
-	CPropHotkey propHotkey(this);
-	CPropDirectory propDirectory(this);
+	// プロパティページ作成	
 	CPropFont propFont(this);
 	CPropFunction propFunctiuon(this);
+	CPropDisp propDisp(this);
+	CPropHotkey propHotkey(this);
 	CPropGamepad propGamepad(this);
+	CPropDirectory propDirectory(this);
 
 	// シートにページを追加
 	PropSheet.AddPage(&propFunctiuon);
+	PropSheet.AddPage(&propDisp);
 	PropSheet.AddPage(&propHotkey);
 	PropSheet.AddPage(&propGamepad);
 	PropSheet.AddPage(&propFont);
