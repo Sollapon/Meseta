@@ -100,4 +100,8 @@ public:
 	static COLORREF Str2Col(CString col);
 	static CString Col2Str(COLORREF col);
 	static bool Str2VK(CString key, UINT& mod, UINT& vk);
+
+public:
+	// エラーチェック
+	void MESETA_ERROR_CHECK(long long  current, long long increased);
 };

@@ -362,6 +362,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /Meseta/Meseta.ini
-/Meseta/2024-0407-132711.csv
-/Meseta/2024-0407-132719.csv
 /Meseta/error.txt

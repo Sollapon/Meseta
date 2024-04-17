@@ -28,6 +28,7 @@
 #define DEFAULT_DOC L"%UserProfile%\\Documents"
 #define DEFAULT_NGS_LOG L"\\SEGA\\PHANTASYSTARONLINE2\\log_ngs\\"
 
+#define _ERROR_CHECK
 
 // CMesetaDlg ダイアログ
 CMesetaDlg::CMesetaDlg(CWnd* pParent /*=nullptr*/)
@@ -582,6 +583,11 @@ void CMesetaDlg::finishRecData(long long currentMeseta)
 		KillTimer(m_autoFinishTimerID);
 		m_autoFinishTimerID = 0;
 	}
+
+#ifdef _ERROR_CHECK
+	// エラーチェック
+	MESETA_ERROR_CHECK(currentMeseta, mesetaCtrl.increasedMeseta);
+#endif
 }
 
 // ダイアログに最小化ボタンを追加する場合、アイコンを描画するための
@@ -837,7 +843,9 @@ void CMesetaDlg::OnTimer(UINT_PTR nIDEvent)
 				if (mesetaCtrl.elapsedTime % iniData.refresh_second == 0)
 				{
 					mesetaCtrl.getCurrentMeseta();
-					m_statusWindow->SetTotalMeseta(mesetaCtrl.increasedMeseta, mesetaCtrl.mesetaPerHour);
+					// メセタ取得に失敗することがある？
+					if (mesetaCtrl.increasedMeseta >= 0 )
+						m_statusWindow->SetTotalMeseta(mesetaCtrl.increasedMeseta, mesetaCtrl.mesetaPerHour);
 				}
 			}			
 		}		
@@ -854,7 +862,16 @@ void CMesetaDlg::OnTimer(UINT_PTR nIDEvent)
 			// カウントダウン終了
 			if (data.auto_count == 0)
 			{
-				long long currentMeseta = mesetaCtrl.getCurrentMeseta();
+				// 念のため3回リトライする
+				long long currentMeseta = -1;
+				for (int retry = 0; retry < 3; retry++)
+				{
+					currentMeseta = mesetaCtrl.getCurrentMeseta();
+					if (currentMeseta >= 0 && mesetaCtrl.increasedMeseta >= 0)
+						break;
+					else if ( retry < 2 )
+						Sleep(100);
+				}
 				finishRecData(currentMeseta);
 			}
 		}
@@ -1148,4 +1165,34 @@ bool CMesetaDlg::Str2VK(CString key, UINT& mod, UINT& vk)
 	vk = (UINT)VK.GetBuffer()[0];
 
 	return true;
+}
+
+// エラー時にログ掃き出し
+void CMesetaDlg::MESETA_ERROR_CHECK(long long  current, long long increased)
+{
+	if (increased < 0)
+	{
+		FILE* fp;
+		_wfopen_s(&fp, L"error.txt", _T("a, ccs=UTF-16LE"));
+		CStdioFile file(fp);
+		if (!file)
+			return;
+
+		CurrentMesetaData cmd = mesetaCtrl.currentMeseta;
+
+		CString error_log;
+		error_log.Format(L"[エラーログ]\n");
+		file.WriteString(error_log);
+
+		error_log.Format(L"現在のメセタ：%lld　(%lld)\n", current, increased);
+		file.WriteString(error_log);
+
+		error_log.Format(L"開始：%lld (%s)\n", cmd.startMesta, cmd.start.Format(L"%m/%d %H:%M:%S").GetString());
+		file.WriteString(error_log);
+
+		error_log.Format(L"終了：%lld (%s)\n\n", cmd.endMeseta, cmd.end.Format(L"%m/%d %H:%M:%S").GetString());
+		file.WriteString(error_log);
+
+		file.Close();
+	}
 }
